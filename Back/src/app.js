@@ -1,9 +1,9 @@
-const express = require('express');
-const app = express();
-const port = 3000;
+import express from "express"
+import morgan from "morgan";
 
-app.get('/', (req, res) => {
-  res.send('¡Hola desde mi backend!');
-});
+const app = express();
+
+app.use(morgan('dev')); //Sirve para ver las peticiones que se le hacen al servidor
+
 
 export default app;
