@@ -1,7 +1,24 @@
-const pool = require("../db.js");
+const pool = require("../config/db.js");
 
+// Mensajes de error comunes
+const ERROR_MESSAGES = {
+  REQUIRED_FIELDS: "Todos los campos son obligatorios.",
+  CLIENT_NOT_FOUND: "Cliente no encontrado.",
+  CLIENT_ALREADY_EXISTS: "El nombre o correo del cliente ya existe.",
+  CREATION_ERROR: "Error al crear el cliente.",
+  RETRIEVAL_ERROR: "Error al consultar el cliente.",
+  UPDATE_ERROR: "Error al actualizar el cliente.",
+  DELETE_ERROR: "Error al eliminar el cliente.",
+};
+
+// Función para enviar respuestas de error
+const handleError = (res, status, message, error = null) => {
+  console.error(message, error);
+  res.status(status).json({ message });
+};
+
+// Controlador para crear clientes
 const crearClientes = async (req, res) => {
-  // Extraer datos del cuerpo de la solicitud
   const {
     nombreCliente,
     direccionCliente,
@@ -10,7 +27,6 @@ const crearClientes = async (req, res) => {
     estadoCliente,
   } = req.body;
 
-  // Validar que todos los campos estén presentes
   if (
     !nombreCliente ||
     !direccionCliente ||
@@ -18,13 +34,10 @@ const crearClientes = async (req, res) => {
     !correoCliente ||
     !estadoCliente
   ) {
-    return res
-      .status(400)
-      .json({ message: "Todos los campos son obligatorios" });
+    return res.status(400).json({ message: ERROR_MESSAGES.REQUIRED_FIELDS });
   }
 
   try {
-    // Ejecutar la consulta directamente
     const [clienteNuevo] = await pool.query(
       "INSERT INTO clientes(nombre_cliente, direccion_cliente, telefono_cliente, correo_cliente, estado_cliente) VALUES (?, ?, ?, ?, ?)",
       [
@@ -36,7 +49,6 @@ const crearClientes = async (req, res) => {
       ]
     );
 
-    console.log("Cliente creado correctamente");
     res
       .status(201)
       .json({
@@ -45,32 +57,27 @@ const crearClientes = async (req, res) => {
       });
   } catch (error) {
     if (error.code === "ER_DUP_ENTRY") {
-      res
-        .status(400)
-        .json({ message: "El nombre o correo del cliente ya existe" });
+      handleError(res, 400, ERROR_MESSAGES.CLIENT_ALREADY_EXISTS, error);
     } else {
-      res.status(500).json({ message: "Error al crear el cliente" });
+      handleError(res, 500, ERROR_MESSAGES.CREATION_ERROR, error);
     }
   }
 };
 
+// Controlador para consultar todos los clientes
 const consultarClientes = async (req, res) => {
   try {
-    // Ejecuta la consulta directamente usando `await` sin `new Promise`
     const [clientes] = await pool.query("SELECT * FROM clientes");
-
-    console.log("Clientes consultados correctamente");
     res.status(200).json(clientes);
   } catch (error) {
-    console.error("Error al consultar los clientes:", error);
-    res.status(500).json({ message: "Error al consultar los clientes" });
+    handleError(res, 500, ERROR_MESSAGES.RETRIEVAL_ERROR, error);
   }
 };
 
+// Controlador para consultar un cliente específico
 const consultarUnCliente = async (req, res) => {
-  const { nombreCliente } = req.params; // Cambiamos a params en lugar de body
+  const { nombreCliente } = req.params;
 
-  // Verificamos que el nombre del cliente esté presente
   if (!nombreCliente) {
     return res
       .status(400)
@@ -83,21 +90,19 @@ const consultarUnCliente = async (req, res) => {
       [nombreCliente]
     );
 
-    // Verificamos si se encontró un cliente
     if (cliente.length === 0) {
-      return res.status(404).json({ message: "Cliente no encontrado." });
+      return res.status(404).json({ message: ERROR_MESSAGES.CLIENT_NOT_FOUND });
     }
 
-    console.log("Cliente consultado correctamente");
     res.status(200).json(cliente);
   } catch (error) {
-    console.error("Error al consultar el cliente:", error);
-    res.status(500).json({ message: "Error al consultar el cliente" });
+    handleError(res, 500, ERROR_MESSAGES.RETRIEVAL_ERROR, error);
   }
 };
 
+// Controlador para actualizar un cliente
 const actualizarCliente = async (req, res) => {
-  const idCliente = req.params.id; // Obtener el id directamente
+  const idCliente = req.params.id;
   const {
     nombreCliente,
     direccionCliente,
@@ -106,7 +111,6 @@ const actualizarCliente = async (req, res) => {
     estadoCliente,
   } = req.body;
 
-  // Validar que se envíen los datos necesarios
   if (
     !nombreCliente ||
     !direccionCliente ||
@@ -114,13 +118,11 @@ const actualizarCliente = async (req, res) => {
     !correoCliente ||
     !estadoCliente
   ) {
-    return res
-      .status(400)
-      .json({ message: "Todos los campos son requeridos." });
+    return res.status(400).json({ message: ERROR_MESSAGES.REQUIRED_FIELDS });
   }
 
   try {
-    const [resultado] = await pool.query(
+    const [clienteActualizado] = await pool.query(
       "UPDATE clientes SET nombre_cliente = ?, direccion_cliente = ?, telefono_cliente = ?, correo_cliente = ?, estado_cliente = ? WHERE id_cliente = ?",
       [
         nombreCliente,
@@ -132,44 +134,44 @@ const actualizarCliente = async (req, res) => {
       ]
     );
 
-    // Verificar si se actualizó algún cliente
-    if (resultado.affectedRows === 0) {
-      return res.status(404).json({ message: "Cliente no encontrado." });
+    if (clienteActualizado.affectedRows === 0) {
+      return res.status(404).json({ message: ERROR_MESSAGES.CLIENT_NOT_FOUND });
     }
 
-    console.log("Cliente actualizado correctamente");
     res.status(200).json({ message: "Cliente actualizado con éxito." });
   } catch (error) {
-    console.error("Error al actualizar el cliente:", error);
-    res.status(500).json({ message: "Error al actualizar el cliente" });
+    handleError(res, 500, ERROR_MESSAGES.UPDATE_ERROR, error);
   }
 };
 
+// Controlador para eliminar un cliente
 const eliminarCliente = async (req, res) => {
   const idCliente = req.params.id;
 
-  // Verificar que el idCliente esté presente
   if (!idCliente) {
     return res.status(400).json({ message: "El ID del cliente es requerido." });
   }
 
   try {
-    const [resultado] = await pool.query(
+    const [clienteEliminado] = await pool.query(
       "DELETE FROM clientes WHERE id_cliente = ?",
       [idCliente]
     );
 
-    // Verificar si se eliminó algún cliente
-    if (resultado.affectedRows === 0) {
-      return res.status(404).json({ message: "Cliente no encontrado." });
+    if (clienteEliminado.affectedRows === 0) {
+      return res.status(404).json({ message: ERROR_MESSAGES.CLIENT_NOT_FOUND });
     }
 
-    console.log("Cliente eliminado correctamente");
     res.status(200).json({ message: "Cliente eliminado con éxito." });
   } catch (error) {
-    console.error("Error al eliminar el cliente:", error);
-    res.status(500).json({ message: "Error al eliminar el cliente" });
+    handleError(res, 500, ERROR_MESSAGES.DELETE_ERROR, error);
   }
 };
 
-module.exports = { crearClientes, consultarClientes, consultarUnCliente, actualizarCliente, eliminarCliente };
+module.exports = {
+  crearClientes,
+  consultarClientes,
+  consultarUnCliente,
+  actualizarCliente,
+  eliminarCliente,
+};
