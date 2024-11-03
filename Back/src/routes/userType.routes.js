@@ -6,15 +6,22 @@ const {
   actualizarTipoUsuario,
   eliminarTipoUsuario,
 } = require("../controllers/userType.controller.js");
-const e = require("express");
 
 const router = express.Router();
 
-// Define la ruta para clientes
+// Define la ruta para crear un tipo de usuario
 router.post("/tiposUsuarios", crearTipoUsuario);
+
+// Define la ruta para consultar todos los tipos de usuario
 router.get("/tiposUsuarios", consultarTipoUsuario);
-router.get("/tiposUsuarios/:nombreTipoUsuario", consultarUnTipoUsuario);
+
+// Define la ruta para consultar un tipo de usuario específico
+router.get("/tiposUsuarios/:id", consultarUnTipoUsuario);
+
+// Define la ruta para actualizar un tipo de usuario
 router.put("/tiposUsuarios/:id", actualizarTipoUsuario);
+
+// Define la ruta para eliminar un tipo de usuario
 router.delete("/tiposUsuarios/:id", eliminarTipoUsuario);
 
 module.exports = router;

@@ -3,12 +3,12 @@ const pool = require("../config/db.js");
 // Mensajes de error comunes
 const ERROR_MESSAGES = {
   REQUIRED_FIELDS: "Todos los campos son obligatorios.",
-  CLIENT_NOT_FOUND: "Usuario no encontrado.",
-  CLIENT_ALREADY_EXISTS: "El nombre o correo del cliente ya existe.",
-  CREATION_ERROR: "Error al crear el cliente.",
-  RETRIEVAL_ERROR: "Error al consultar el cliente.",
-  UPDATE_ERROR: "Error al actualizar el cliente.",
-  DELETE_ERROR: "Error al eliminar el cliente.",
+  USER_NOT_FOUND: "Usuario no encontrado.",
+  USER_ALREADY_REGISTERED: "El correo del usuario ya está registrado.",
+  CREATION_ERROR: "Error al crear el usuario.",
+  RETRIEVAL_ERROR: "Error al consultar el usuario.",
+  UPDATE_ERROR: "Error al actualizar el usuario.",
+  DELETE_ERROR: "Error al eliminar el usuario.",
 };
 
 // Función para enviar respuestas de error
@@ -17,159 +17,182 @@ const handleError = (res, status, message, error = null) => {
   res.status(status).json({ message });
 };
 
-// // Controlador para crear clientes
-// const crearClientes = async (req, res) => {
-//   const {
-//     nombreCliente,
-//     direccionCliente,
-//     telefonoCliente,
-//     correoCliente,
-//     estadoCliente,
-//   } = req.body;
+// Función de validación de campos obligatorios
+const validateFields = (fields) => {
+  return Object.values(fields).every(
+    (field) => field !== undefined && field !== null && field !== ""
+  );
+};
 
-//   if (
-//     !nombreCliente ||
-//     !direccionCliente ||
-//     !telefonoCliente ||
-//     !correoCliente ||
-//     !estadoCliente
-//   ) {
-//     return res.status(400).json({ message: ERROR_MESSAGES.REQUIRED_FIELDS });
-//   }
+// Controlador para crear usuario
+const crearUsuario = async (req, res) => {
+  const {
+    nombreUsuario,
+    tipoUsuario,
+    correoUsuario,
+    contraseñaUsuario,
+    telefonoUsuario,
+    cargoUsuario,
+    estadoUsuario,
+  } = req.body;
 
-//   try {
-//     const [clienteNuevo] = await pool.query(
-//       "INSERT INTO clientes(nombre_cliente, direccion_cliente, telefono_cliente, correo_cliente, estado_cliente) VALUES (?, ?, ?, ?, ?)",
-//       [
-//         nombreCliente,
-//         direccionCliente,
-//         telefonoCliente,
-//         correoCliente,
-//         estadoCliente,
-//       ]
-//     );
+  if (
+    !validateFields({
+      nombreUsuario,
+      tipoUsuario,
+      correoUsuario,
+      contraseñaUsuario,
+      telefonoUsuario,
+      cargoUsuario,
+      estadoUsuario,
+    })
+  ) {
+    return res.status(400).json({ message: ERROR_MESSAGES.REQUIRED_FIELDS });
+  }
 
-//     res.status(201).json({
-//       message: "El cliente se creó con éxito",
-//       clienteId: clienteNuevo.insertId,
-//     });
-//   } catch (error) {
-//     if (error.code === "ER_DUP_ENTRY") {
-//       handleError(res, 400, ERROR_MESSAGES.CLIENT_ALREADY_EXISTS, error);
-//     } else {
-//       handleError(res, 500, ERROR_MESSAGES.CREATION_ERROR, error);
-//     }
-//   }
-// };
+  try {
+    const [usuarioNuevo] = await pool.query(
+      "INSERT INTO usuarios(nombre_usuario, id_tipo_usuario, correo_usuario, contraseña_usuario, telefono_usuario, cargo_usuario, estado_usuario) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      [
+        nombreUsuario,
+        tipoUsuario,
+        correoUsuario,
+        contraseñaUsuario,
+        telefonoUsuario,
+        cargoUsuario,
+        estadoUsuario,
+      ]
+    );
 
-// // Controlador para consultar todos los clientes
-// const consultarClientes = async (req, res) => {
-//   try {
-//     const [clientes] = await pool.query("SELECT * FROM clientes");
-//     res.status(200).json(clientes);
-//   } catch (error) {
-//     handleError(res, 500, ERROR_MESSAGES.RETRIEVAL_ERROR, error);
-//   }
-// };
+    res.status(201).json({
+      message: "El usuario se creó con éxito",
+      usuarioId: usuarioNuevo.insertId,
+    });
+  } catch (error) {
+    if (error.code === "ER_DUP_ENTRY") {
+      handleError(res, 400, ERROR_MESSAGES.USER_ALREADY_REGISTERED, error);
+    } else {
+      handleError(res, 500, ERROR_MESSAGES.CREATION_ERROR, error);
+    }
+  }
+};
 
-// // Controlador para consultar un cliente específico
-// const consultarUnCliente = async (req, res) => {
-//   const { nombreCliente } = req.params;
+// Controlador para consultar todos los usuarios
+const consultarUsuarios = async (req, res) => {
+  try {
+    const [usuarios] = await pool.query("SELECT * FROM usuarios");
+    res.status(200).json(usuarios);
+  } catch (error) {
+    handleError(res, 500, ERROR_MESSAGES.RETRIEVAL_ERROR, error);
+  }
+};
 
-//   if (!nombreCliente) {
-//     return res
-//       .status(400)
-//       .json({ message: "El nombre del cliente es requerido." });
-//   }
+// Controlador para consultar un usuario específico
+const consultarUnUsuario = async (req, res) => {
+  const { idUsuario } = req.params.id;
 
-//   try {
-//     const [cliente] = await pool.query(
-//       "SELECT * FROM clientes WHERE nombre_cliente = ?",
-//       [nombreCliente]
-//     );
+  if (!idUsuario) {
+    return res
+      .status(400)
+      .json({ message: "El ID del usuario es requerido." });
+  }
 
-//     if (cliente.length === 0) {
-//       return res.status(404).json({ message: ERROR_MESSAGES.CLIENT_NOT_FOUND });
-//     }
+  try {
+    const [usuario] = await pool.query(
+      "SELECT * FROM usuarios WHERE id_usuario = ?",
+      [idUsuario]
+    );
 
-//     res.status(200).json(cliente);
-//   } catch (error) {
-//     handleError(res, 500, ERROR_MESSAGES.RETRIEVAL_ERROR, error);
-//   }
-// };
+    if (usuario.length === 0) {
+      return res.status(404).json({ message: ERROR_MESSAGES.USER_NOT_FOUND });
+    }
 
-// // Controlador para actualizar un cliente
-// const actualizarCliente = async (req, res) => {
-//   const idCliente = req.params.id;
-//   const {
-//     nombreCliente,
-//     direccionCliente,
-//     telefonoCliente,
-//     correoCliente,
-//     estadoCliente,
-//   } = req.body;
+    res.status(200).json(usuario);
+  } catch (error) {
+    handleError(res, 500, ERROR_MESSAGES.RETRIEVAL_ERROR, error);
+  }
+};
 
-//   if (
-//     !nombreCliente ||
-//     !direccionCliente ||
-//     !telefonoCliente ||
-//     !correoCliente ||
-//     !estadoCliente
-//   ) {
-//     return res.status(400).json({ message: ERROR_MESSAGES.REQUIRED_FIELDS });
-//   }
+// Controlador para actualizar un usuario
+const actualizarUsuario = async (req, res) => {
+  const idUsuario = req.params.id;
+  const {
+    nombreUsuario,
+    tipoUsuario,
+    correoUsuario,
+    contraseñaUsuario,
+    telefonoUsuario,
+    cargoUsuario,
+    estadoUsuario,
+  } = req.body;
 
-//   try {
-//     const [clienteActualizado] = await pool.query(
-//       "UPDATE clientes SET nombre_cliente = ?, direccion_cliente = ?, telefono_cliente = ?, correo_cliente = ?, estado_cliente = ? WHERE id_cliente = ?",
-//       [
-//         nombreCliente,
-//         direccionCliente,
-//         telefonoCliente,
-//         correoCliente,
-//         estadoCliente,
-//         idCliente,
-//       ]
-//     );
+  if (
+    !validateFields({
+      nombreUsuario,
+      tipoUsuario,
+      correoUsuario,
+      contraseñaUsuario,
+      telefonoUsuario,
+      cargoUsuario,
+      estadoUsuario,
+    })
+  ) {
+    return res.status(400).json({ message: ERROR_MESSAGES.REQUIRED_FIELDS });
+  }
 
-//     if (clienteActualizado.affectedRows === 0) {
-//       return res.status(404).json({ message: ERROR_MESSAGES.CLIENT_NOT_FOUND });
-//     }
+  try {
+    const [usuarioActualizado] = await pool.query(
+      "UPDATE usuarios SET nombre_usuario = ?, id_tipo_usuario = ?, correo_usuario = ?, contraseña_usuario = ?, telefono_usuario = ?, cargo_usuario = ?, estado_usuario = ? WHERE id_usuario = ?",
+      [
+        nombreUsuario,
+        tipoUsuario,
+        correoUsuario,
+        contraseñaUsuario,
+        telefonoUsuario,
+        cargoUsuario,
+        estadoUsuario,
+        idUsuario,
+      ]
+    );
 
-//     res.status(200).json({ message: "Cliente actualizado con éxito." });
-//   } catch (error) {
-//     handleError(res, 500, ERROR_MESSAGES.UPDATE_ERROR, error);
-//   }
-// };
+    if (usuarioActualizado.affectedRows === 0) {
+      return res.status(404).json({ message: ERROR_MESSAGES.USER_NOT_FOUND });
+    }
 
-// // Controlador para eliminar un cliente
-// const eliminarCliente = async (req, res) => {
-//   const idCliente = req.params.id;
+    res.status(200).json({ message: "Usuario actualizado con éxito." });
+  } catch (error) {
+    handleError(res, 500, ERROR_MESSAGES.UPDATE_ERROR, error);
+  }
+};
 
-//   if (!idCliente) {
-//     return res.status(400).json({ message: "El ID del cliente es requerido." });
-//   }
+// Controlador para eliminar un usuario
+const eliminarUsuario = async (req, res) => {
+  const idUsuario = req.params.id;
 
-//   try {
-//     const [clienteEliminado] = await pool.query(
-//       "DELETE FROM clientes WHERE id_cliente = ?",
-//       [idCliente]
-//     );
+  if (!idUsuario) {
+    return res.status(400).json({ message: "El ID del usuario es requerido." });
+  }
 
-//     if (clienteEliminado.affectedRows === 0) {
-//       return res.status(404).json({ message: ERROR_MESSAGES.CLIENT_NOT_FOUND });
-//     }
+  try {
+    const [usuarioEliminado] = await pool.query(
+      "DELETE FROM usuarios WHERE id_usuario = ?",
+      [idUsuario]
+    );
 
-//     res.status(200).json({ message: "Cliente eliminado con éxito." });
-//   } catch (error) {
-//     handleError(res, 500, ERROR_MESSAGES.DELETE_ERROR, error);
-//   }
-// };
+    if (usuarioEliminado.affectedRows === 0) {
+      return res.status(404).json({ message: ERROR_MESSAGES.USER_NOT_FOUND });
+    }
 
-// module.exports = {
-//   crearClientes,
-//   consultarClientes,
-//   consultarUnCliente,
-//   actualizarCliente,
-//   eliminarCliente,
-// };
+    res.status(200).json({ message: "Usuario eliminado con éxito." });
+  } catch (error) {
+    handleError(res, 500, ERROR_MESSAGES.DELETE_ERROR, error);
+  }
+};
+
+module.exports = {
+  crearUsuario,
+  consultarUsuarios,
+  consultarUnUsuario,
+  actualizarUsuario,
+  eliminarUsuario,
+};

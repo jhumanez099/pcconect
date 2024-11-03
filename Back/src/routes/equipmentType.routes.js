@@ -6,15 +6,24 @@ const {
   actualizarTipoEquipo,
   eliminarTipoEquipo,
 } = require("../controllers/equipmentType.controller.js");
-const e = require("express");
 
 const router = express.Router();
 
-// Define la ruta para clientes
+// Rutas para la gestión de tipos de equipos
+
+// Crear un nuevo tipo de equipo
 router.post("/tiposEquipos", crearTipoEquipo);
+
+// Consultar todos los tipos de equipos
 router.get("/tiposEquipos", consultarTipoEquipo);
-router.get("/tiposEquipos/:nombreTipoEquipo", consultarUnTipoEquipo);
+
+// Consultar un tipo de equipo específico por ID
+router.get("/tiposEquipos/:id", consultarUnTipoEquipo);
+
+// Actualizar un tipo de equipo específico por ID
 router.put("/tiposEquipos/:id", actualizarTipoEquipo);
+
+// Eliminar un tipo de equipo específico por ID
 router.delete("/tiposEquipos/:id", eliminarTipoEquipo);
 
 module.exports = router;

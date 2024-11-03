@@ -17,11 +17,18 @@ const handleError = (res, status, message, error = null) => {
   res.status(status).json({ message });
 };
 
-// Controlador para crear clientes
+// Función de validación de campos obligatorios
+const validateFields = (fields) => {
+  return Object.values(fields).every(
+    (field) => field !== undefined && field !== null && field !== ""
+  );
+};
+
+// Controlador para crear tipo de pedido
 const crearTipoPedido = async (req, res) => {
   const { nombreTipoPedido } = req.body;
 
-  if (!nombreTipoPedido) {
+  if (!validateFields({ nombreTipoPedido })) {
     return res.status(400).json({ message: ERROR_MESSAGES.REQUIRED_FIELDS });
   }
 
@@ -32,24 +39,19 @@ const crearTipoPedido = async (req, res) => {
     );
 
     res.status(201).json({
-      message: "El tipo del pedido se creó con éxito",
+      message: "El tipo de pedido se creó con éxito",
       tipoPedidoId: tipoPedidoNuevo.insertId,
     });
   } catch (error) {
     if (error.code === "ER_DUP_ENTRY") {
-      handleError(
-        res,
-        400,
-        ERROR_MESSAGES.ORDER_TYPE_ALREADY_EXISTS,
-        error
-      );
+      handleError(res, 400, ERROR_MESSAGES.ORDER_TYPE_ALREADY_EXISTS, error);
     } else {
       handleError(res, 500, ERROR_MESSAGES.CREATION_ERROR, error);
     }
   }
 };
 
-// Controlador para consultar todos los clientes
+// Controlador para consultar todos los tipos de pedido
 const consultarTipoPedido = async (req, res) => {
   try {
     const [tiposPedidos] = await pool.query("SELECT * FROM tipo_pedido");
@@ -59,18 +61,18 @@ const consultarTipoPedido = async (req, res) => {
   }
 };
 
-// Controlador para consultar un cliente específico
+// Controlador para consultar un tipo de pedido específico
 const consultarUnTipoPedido = async (req, res) => {
-  const { nombreTipoPedido } = req.params;
+  const { idTipoPedido } = req.params.id;
 
-  if (!nombreTipoPedido) {
-    return res.status(400).json({ message: ERROR_MESSAGES.REQUIRED_FIELDS });
+  if (!idTipoPedido) {
+    return res.status(400).json({ message: "El ID del tipo de pedido es requerido." });
   }
 
   try {
     const [tipoPedido] = await pool.query(
-      "SELECT * FROM tipo_pedido WHERE nombre_tipo_pedido = ?",
-      [nombreTipoPedido]
+      "SELECT * FROM tipo_pedido WHERE id_tipo_pedido = ?",
+      [idTipoPedido]
     );
 
     if (tipoPedido.length === 0) {
@@ -85,12 +87,12 @@ const consultarUnTipoPedido = async (req, res) => {
   }
 };
 
-// Controlador para actualizar un cliente
+// Controlador para actualizar un tipo de pedido
 const actualizarTipoPedido = async (req, res) => {
   const idTipoPedido = req.params.id;
   const { nombreTipoPedido } = req.body;
 
-  if (!nombreTipoPedido) {
+  if (!validateFields({ nombreTipoPedido })) {
     return res.status(400).json({ message: ERROR_MESSAGES.REQUIRED_FIELDS });
   }
 
@@ -106,20 +108,20 @@ const actualizarTipoPedido = async (req, res) => {
         .json({ message: ERROR_MESSAGES.ORDER_TYPE_NOT_FOUND });
     }
 
-    res.status(200).json({ message: "Tipo del pedido actualizado con éxito." });
+    res.status(200).json({ message: "Tipo de pedido actualizado con éxito." });
   } catch (error) {
     handleError(res, 500, ERROR_MESSAGES.UPDATE_ERROR, error);
   }
 };
 
-// Controlador para eliminar un cliente
+// Controlador para eliminar un tipo de pedido
 const eliminarTipoPedido = async (req, res) => {
   const idTipoPedido = req.params.id;
 
   if (!idTipoPedido) {
     return res
       .status(400)
-      .json({ message: "El ID del tipo pedido es requerido." });
+      .json({ message: "El ID del tipo de pedido es requerido." });
   }
 
   try {
@@ -134,7 +136,7 @@ const eliminarTipoPedido = async (req, res) => {
         .json({ message: ERROR_MESSAGES.ORDER_TYPE_NOT_FOUND });
     }
 
-    res.status(200).json({ message: "Tipo del pedido eliminado con éxito." });
+    res.status(200).json({ message: "Tipo de pedido eliminado con éxito." });
   } catch (error) {
     handleError(res, 500, ERROR_MESSAGES.DELETE_ERROR, error);
   }
