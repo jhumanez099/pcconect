@@ -17,11 +17,16 @@ const handleError = (res, status, message, error = null) => {
   res.status(status).json({ message });
 };
 
-// Controlador para crear clientes
+// Función de validación de campo obligatorio
+const validateField = (field) => {
+  return field !== undefined && field !== null && field !== "";
+};
+
+// Controlador para crear un tipo de usuario
 const crearTipoUsuario = async (req, res) => {
   const { nombreTipoUsuario } = req.body;
 
-  if (!nombreTipoUsuario) {
+  if (!validateField(nombreTipoUsuario)) {
     return res.status(400).json({ message: ERROR_MESSAGES.REQUIRED_FIELDS });
   }
 
@@ -32,24 +37,19 @@ const crearTipoUsuario = async (req, res) => {
     );
 
     res.status(201).json({
-      message: "El tipo del usuario se creó con éxito",
+      message: "El tipo de usuario se creó con éxito",
       tipoUsuarioId: tipoUsuarioNuevo.insertId,
     });
   } catch (error) {
     if (error.code === "ER_DUP_ENTRY") {
-      handleError(
-        res,
-        400,
-        ERROR_MESSAGES.USER_TYPE_ALREADY_EXISTS,
-        error
-      );
+      handleError(res, 400, ERROR_MESSAGES.USER_TYPE_ALREADY_EXISTS, error);
     } else {
       handleError(res, 500, ERROR_MESSAGES.CREATION_ERROR, error);
     }
   }
 };
 
-// Controlador para consultar todos los clientes
+// Controlador para consultar todos los tipos de usuario
 const consultarTipoUsuario = async (req, res) => {
   try {
     const [tiposUsuarios] = await pool.query("SELECT * FROM tipo_usuario");
@@ -59,18 +59,18 @@ const consultarTipoUsuario = async (req, res) => {
   }
 };
 
-// Controlador para consultar un cliente específico
+// Controlador para consultar un tipo de usuario específico
 const consultarUnTipoUsuario = async (req, res) => {
-  const { nombreTipoUsuario } = req.params;
+  const { idTipoUsuario } = req.params.id;
 
-  if (!nombreTipoUsuario) {
-    return res.status(400).json({ message: ERROR_MESSAGES.REQUIRED_FIELDS });
+  if (!validateField(idTipoUsuario)) {
+    return res.status(400).json({ message: "El ID del tipo de usuario es requerido." });
   }
 
   try {
     const [tipoUsuario] = await pool.query(
-      "SELECT * FROM tipo_usuario WHERE nombre_tipo_usuario = ?",
-      [nombreTipoUsuario]
+      "SELECT * FROM tipo_usuario WHERE id_tipo_usuario = ?",
+      [idTipoUsuario]
     );
 
     if (tipoUsuario.length === 0) {
@@ -85,12 +85,12 @@ const consultarUnTipoUsuario = async (req, res) => {
   }
 };
 
-// Controlador para actualizar un cliente
+// Controlador para actualizar un tipo de usuario
 const actualizarTipoUsuario = async (req, res) => {
   const idTipoUsuario = req.params.id;
   const { nombreTipoUsuario } = req.body;
 
-  if (!nombreTipoUsuario) {
+  if (!validateField(nombreTipoUsuario)) {
     return res.status(400).json({ message: ERROR_MESSAGES.REQUIRED_FIELDS });
   }
 
@@ -106,20 +106,20 @@ const actualizarTipoUsuario = async (req, res) => {
         .json({ message: ERROR_MESSAGES.USER_TYPE_NOT_FOUND });
     }
 
-    res.status(200).json({ message: "Tipo del usuario actualizado con éxito." });
+    res.status(200).json({ message: "Tipo de usuario actualizado con éxito." });
   } catch (error) {
     handleError(res, 500, ERROR_MESSAGES.UPDATE_ERROR, error);
   }
 };
 
-// Controlador para eliminar un cliente
+// Controlador para eliminar un tipo de usuario
 const eliminarTipoUsuario = async (req, res) => {
   const idTipoUsuario = req.params.id;
 
-  if (!idTipoUsuario) {
+  if (!validateField(idTipoUsuario)) {
     return res
       .status(400)
-      .json({ message: "El ID del tipo usuario es requerido." });
+      .json({ message: "El ID del tipo de usuario es requerido." });
   }
 
   try {
@@ -134,7 +134,7 @@ const eliminarTipoUsuario = async (req, res) => {
         .json({ message: ERROR_MESSAGES.USER_TYPE_NOT_FOUND });
     }
 
-    res.status(200).json({ message: "Tipo del usuario eliminado con éxito." });
+    res.status(200).json({ message: "Tipo de usuario eliminado con éxito." });
   } catch (error) {
     handleError(res, 500, ERROR_MESSAGES.DELETE_ERROR, error);
   }

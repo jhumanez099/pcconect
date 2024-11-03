@@ -1,19 +1,27 @@
-// const express = require("express");
-// const {
-//   crearClientes,
-//   consultarClientes,
-//   consultarUnCliente,
-//   actualizarCliente,
-//   eliminarCliente,
-// } = require("../controllers/client.controller.js");
+const express = require("express");
+const {
+  crearUsuario,
+  consultarUnUsuario,
+  consultarUsuarios,
+  actualizarUsuario,
+  eliminarUsuario,
+} = require("../controllers/user.controller.js");
 
-// const router = express.Router();
+const router = express.Router();
 
-// // Define la ruta para clientes
-// router.post("/clientes", crearClientes);
-// router.get("/clientes", consultarClientes);
-// router.get("/clientes/:nombreCliente", consultarUnCliente);
-// router.put("/clientes/:id", actualizarCliente);
-// router.delete("/clientes/:id", eliminarCliente);
+// Define la ruta para crear un usuario
+router.post("/usuarios", crearUsuario);
 
-// module.exports = router;
+// Define la ruta para consultar todos los usuarios
+router.get("/usuarios", consultarUsuarios);
+
+// Define la ruta para consultar un usuario específico
+router.get("/usuarios/:id", consultarUnUsuario);
+
+// Define la ruta para actualizar un usuario
+router.put("/usuarios/:id", actualizarUsuario);
+
+// Define la ruta para eliminar un usuario
+router.delete("/usuarios/:id", eliminarUsuario);
+
+module.exports = router;

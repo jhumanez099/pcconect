@@ -17,44 +17,38 @@ const handleError = (res, status, message, error = null) => {
   res.status(status).json({ message });
 };
 
+// Función para validar campos no vacíos
+const validateFields = (fields) => {
+  return Object.values(fields).every(
+    (field) => field !== undefined && field !== null && field !== ""
+  );
+};
+
 // Controlador para crear clientes
 const crearClientes = async (req, res) => {
-  const {
-    nombreCliente,
-    direccionCliente,
-    telefonoCliente,
-    correoCliente,
-    estadoCliente,
-  } = req.body;
+  const fields = {
+    nombreCliente: req.body.nombreCliente,
+    direccionCliente: req.body.direccionCliente,
+    telefonoCliente: req.body.telefonoCliente,
+    correoCliente: req.body.correoCliente,
+    estadoCliente: req.body.estadoCliente,
+    encargadoCliente: req.body.encargadoCliente,
+  };
 
-  if (
-    !nombreCliente ||
-    !direccionCliente ||
-    !telefonoCliente ||
-    !correoCliente ||
-    !estadoCliente
-  ) {
+  if (!validateFields(fields)) {
     return res.status(400).json({ message: ERROR_MESSAGES.REQUIRED_FIELDS });
   }
 
   try {
     const [clienteNuevo] = await pool.query(
-      "INSERT INTO clientes(nombre_cliente, direccion_cliente, telefono_cliente, correo_cliente, estado_cliente) VALUES (?, ?, ?, ?, ?)",
-      [
-        nombreCliente,
-        direccionCliente,
-        telefonoCliente,
-        correoCliente,
-        estadoCliente,
-      ]
+      "INSERT INTO clientes(nombre_cliente, direccion_cliente, telefono_cliente, correo_cliente, estado_cliente, encargado_cliente) VALUES (?, ?, ?, ?, ?, ?)",
+      Object.values(fields)
     );
 
-    res
-      .status(201)
-      .json({
-        message: "El cliente se creó con éxito",
-        clienteId: clienteNuevo.insertId,
-      });
+    res.status(201).json({
+      message: "El cliente se creó con éxito",
+      clienteId: clienteNuevo.insertId,
+    });
   } catch (error) {
     if (error.code === "ER_DUP_ENTRY") {
       handleError(res, 400, ERROR_MESSAGES.CLIENT_ALREADY_EXISTS, error);
@@ -74,20 +68,18 @@ const consultarClientes = async (req, res) => {
   }
 };
 
-// Controlador para consultar un cliente específico
+// Controlador para consultar un cliente específico por ID
 const consultarUnCliente = async (req, res) => {
-  const { nombreCliente } = req.params;
+  const { idCliente } = req.params.id;
 
-  if (!nombreCliente) {
-    return res
-      .status(400)
-      .json({ message: "El nombre del cliente es requerido." });
+  if (!idCliente) {
+    return res.status(400).json({ message: "El ID del cliente es requerido." });
   }
 
   try {
     const [cliente] = await pool.query(
-      "SELECT * FROM clientes WHERE nombre_cliente = ?",
-      [nombreCliente]
+      "SELECT * FROM clientes WHERE id_cliente = ?",
+      [idCliente]
     );
 
     if (cliente.length === 0) {
@@ -103,35 +95,23 @@ const consultarUnCliente = async (req, res) => {
 // Controlador para actualizar un cliente
 const actualizarCliente = async (req, res) => {
   const idCliente = req.params.id;
-  const {
-    nombreCliente,
-    direccionCliente,
-    telefonoCliente,
-    correoCliente,
-    estadoCliente,
-  } = req.body;
+  const fields = {
+    nombreCliente: req.body.nombreCliente,
+    direccionCliente: req.body.direccionCliente,
+    telefonoCliente: req.body.telefonoCliente,
+    correoCliente: req.body.correoCliente,
+    estadoCliente: req.body.estadoCliente,
+    encargadoCliente: req.body.encargadoCliente,
+  };
 
-  if (
-    !nombreCliente ||
-    !direccionCliente ||
-    !telefonoCliente ||
-    !correoCliente ||
-    !estadoCliente
-  ) {
+  if (!validateFields(fields)) {
     return res.status(400).json({ message: ERROR_MESSAGES.REQUIRED_FIELDS });
   }
 
   try {
     const [clienteActualizado] = await pool.query(
-      "UPDATE clientes SET nombre_cliente = ?, direccion_cliente = ?, telefono_cliente = ?, correo_cliente = ?, estado_cliente = ? WHERE id_cliente = ?",
-      [
-        nombreCliente,
-        direccionCliente,
-        telefonoCliente,
-        correoCliente,
-        estadoCliente,
-        idCliente,
-      ]
+      "UPDATE clientes SET nombre_cliente = ?, direccion_cliente = ?, telefono_cliente = ?, correo_cliente = ?, estado_cliente = ?, encargado_cliente = ? WHERE id_cliente = ?",
+      [...Object.values(fields), idCliente]
     );
 
     if (clienteActualizado.affectedRows === 0) {
@@ -140,7 +120,11 @@ const actualizarCliente = async (req, res) => {
 
     res.status(200).json({ message: "Cliente actualizado con éxito." });
   } catch (error) {
-    handleError(res, 500, ERROR_MESSAGES.UPDATE_ERROR, error);
+    if (error.code === "ER_DUP_ENTRY") {
+      handleError(res, 400, ERROR_MESSAGES.CLIENT_ALREADY_EXISTS, error);
+    } else {
+      handleError(res, 500, ERROR_MESSAGES.UPDATE_ERROR, error);
+    }
   }
 };
 

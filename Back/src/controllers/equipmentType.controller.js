@@ -2,8 +2,8 @@ const pool = require("../config/db.js");
 
 // Mensajes de error comunes
 const ERROR_MESSAGES = {
-  REQUIRED_FIELDS: "El nombre del tipo del equipo es requerido.",
-  EQUIPMET_TYPE_NOT_FOUND: "Tipo de equipo no encontrado.",
+  REQUIRED_FIELDS: "El nombre del tipo de equipo es requerido.",
+  EQUIPMENT_TYPE_NOT_FOUND: "Tipo de equipo no encontrado.",
   EQUIPMENT_TYPE_ALREADY_EXISTS: "El nombre del tipo de equipo ya existe.",
   CREATION_ERROR: "Error al crear el tipo de equipo.",
   RETRIEVAL_ERROR: "Error al consultar el tipo de equipo.",
@@ -17,28 +17,29 @@ const handleError = (res, status, message, error = null) => {
   res.status(status).json({ message });
 };
 
-// Controlador para crear clientes
-const crearTipoEquipo = async (req, res) => {
-  const {
-    nombreTipoEquipo
-  } = req.body;
+// Validar campos obligatorios
+const validateFields = (fields) => {
+  return Object.values(fields).every(
+    (field) => field !== undefined && field !== null && field !== ""
+  );
+};
 
-  if (
-    !nombreTipoEquipo 
-  ) {
+// Controlador para crear un tipo de equipo
+const crearTipoEquipo = async (req, res) => {
+  const { nombreTipoEquipo } = req.body;
+
+  if (!validateFields({ nombreTipoEquipo })) {
     return res.status(400).json({ message: ERROR_MESSAGES.REQUIRED_FIELDS });
   }
 
   try {
     const [tipoEquipoNuevo] = await pool.query(
       "INSERT INTO tipo_equipo(nombre_tipo_equipo) VALUES (?)",
-      [
-        nombreTipoEquipo
-      ]
+      [nombreTipoEquipo]
     );
 
     res.status(201).json({
-      message: "El cliente se creó con éxito",
+      message: "El tipo de equipo se creó con éxito",
       tipoEquipoId: tipoEquipoNuevo.insertId,
     });
   } catch (error) {
@@ -55,7 +56,7 @@ const crearTipoEquipo = async (req, res) => {
   }
 };
 
-// Controlador para consultar todos los clientes
+// Controlador para consultar todos los tipos de equipo
 const consultarTipoEquipo = async (req, res) => {
   try {
     const [tiposEquipos] = await pool.query("SELECT * FROM tipo_equipo");
@@ -65,22 +66,24 @@ const consultarTipoEquipo = async (req, res) => {
   }
 };
 
-// Controlador para consultar un cliente específico
+// Controlador para consultar un tipo de equipo específico
 const consultarUnTipoEquipo = async (req, res) => {
-  const { nombreTipoEquipo } = req.params;
+  const { idTipoEquipo } = req.params.id;
 
-  if (!nombreTipoEquipo) {
-    return res.status(400).json({ message: ERROR_MESSAGES.REQUIRED_FIELDS });
+  if (!idTipoEquipo) {
+    return res.status(400).json({ message: "El ID del tipo de equipo es requerido. " });
   }
 
   try {
     const [tipoEquipo] = await pool.query(
-      "SELECT * FROM tipo_equipo WHERE nombre_tipo_equipo = ?",
-      [nombreTipoEquipo]
+      "SELECT * FROM tipo_equipo WHERE id_tipo_equipo = ?",
+      [idTipoEquipo]
     );
 
     if (tipoEquipo.length === 0) {
-      return res.status(404).json({ message: ERROR_MESSAGES.EQUIPMET_TYPE_NOT_FOUND });
+      return res
+        .status(404)
+        .json({ message: ERROR_MESSAGES.EQUIPMENT_TYPE_NOT_FOUND });
     }
 
     res.status(200).json(tipoEquipo);
@@ -89,44 +92,41 @@ const consultarUnTipoEquipo = async (req, res) => {
   }
 };
 
-// Controlador para actualizar un cliente
+// Controlador para actualizar un tipo de equipo
 const actualizarTipoEquipo = async (req, res) => {
   const idTipoEquipo = req.params.id;
-  const {
-    nombreTipoEquipo
-  } = req.body;
+  const { nombreTipoEquipo } = req.body;
 
-  if (
-    !nombreTipoEquipo 
-  ) {
+  if (!validateFields({ nombreTipoEquipo })) {
     return res.status(400).json({ message: ERROR_MESSAGES.REQUIRED_FIELDS });
   }
 
   try {
     const [tipoEquipoActualizado] = await pool.query(
       "UPDATE tipo_equipo SET nombre_tipo_equipo = ? WHERE id_tipo_equipo = ?",
-      [
-        nombreTipoEquipo,
-        idTipoEquipo
-      ]
+      [nombreTipoEquipo, idTipoEquipo]
     );
 
     if (tipoEquipoActualizado.affectedRows === 0) {
-      return res.status(404).json({ message: ERROR_MESSAGES.EQUIPMET_TYPE_NOT_FOUND });
+      return res
+        .status(404)
+        .json({ message: ERROR_MESSAGES.EQUIPMENT_TYPE_NOT_FOUND });
     }
 
-    res.status(200).json({ message: "Tipo del equipo actualizado con éxito." });
+    res.status(200).json({ message: "Tipo de equipo actualizado con éxito." });
   } catch (error) {
     handleError(res, 500, ERROR_MESSAGES.UPDATE_ERROR, error);
   }
 };
 
-// Controlador para eliminar un cliente
+// Controlador para eliminar un tipo de equipo
 const eliminarTipoEquipo = async (req, res) => {
   const idTipoEquipo = req.params.id;
 
   if (!idTipoEquipo) {
-    return res.status(400).json({ message: "El ID del tipo equipo es requerido." });
+    return res
+      .status(400)
+      .json({ message: "El ID del tipo de equipo es requerido." });
   }
 
   try {
@@ -136,10 +136,12 @@ const eliminarTipoEquipo = async (req, res) => {
     );
 
     if (tipoEquipoEliminado.affectedRows === 0) {
-      return res.status(404).json({ message: ERROR_MESSAGES.EQUIPMET_TYPE_NOT_FOUND });
+      return res
+        .status(404)
+        .json({ message: ERROR_MESSAGES.EQUIPMENT_TYPE_NOT_FOUND });
     }
 
-    res.status(200).json({ message: "Tipo del equipo eliminado con éxito." });
+    res.status(200).json({ message: "Tipo de equipo eliminado con éxito." });
   } catch (error) {
     handleError(res, 500, ERROR_MESSAGES.DELETE_ERROR, error);
   }
@@ -150,5 +152,5 @@ module.exports = {
   consultarTipoEquipo,
   consultarUnTipoEquipo,
   actualizarTipoEquipo,
-  eliminarTipoEquipo
+  eliminarTipoEquipo,
 };
