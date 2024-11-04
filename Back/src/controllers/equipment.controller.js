@@ -1,6 +1,5 @@
-const pool = require("../config/db.js");
+const Equipo = require("../models/Equipment.js");
 
-// Mensajes de error comunes
 const ERROR_MESSAGES = {
   REQUIRED_FIELDS: "Todos los campos son obligatorios.",
   EQUIPMENT_NOT_FOUND: "Equipo no encontrado.",
@@ -10,20 +9,17 @@ const ERROR_MESSAGES = {
   DELETE_ERROR: "Error al eliminar el equipo.",
 };
 
-// Función para enviar respuestas de error
 const handleError = (res, status, message, error = null) => {
   console.error(message, error);
   res.status(status).json({ message });
 };
 
-// Validación dinámica de campos
 const validateFields = (fields) => {
   return Object.values(fields).every(
     (field) => field !== undefined && field !== null
   );
 };
 
-// Controlador para crear equipo
 const crearEquipo = async (req, res) => {
   const {
     nombreTipoEquipo,
@@ -46,11 +42,7 @@ const crearEquipo = async (req, res) => {
   }
 
   try {
-    const [equipoNuevo] = await pool.query(
-      "INSERT INTO equipos(id_tipo_equipo, modelo_equipo, marca_equipo, estado_equipo, fecha_compra_equipo) VALUES (?, ?, ?, ?, ?)",
-      [...Object.values(fields)]
-    );
-
+    const equipoNuevo = await Equipo.crear(fields);
     res.status(201).json({
       message: "El equipo se creó con éxito",
       equipoId: equipoNuevo.insertId,
@@ -60,39 +52,24 @@ const crearEquipo = async (req, res) => {
   }
 };
 
-// Controlador para consultar todos los equipos
 const consultarEquipo = async (req, res) => {
   try {
-    const [equipos] = await pool.query(
-      `SELECT e.*, te.nombre_tipo_equipo 
-       FROM equipos e 
-       JOIN tipo_equipo te ON te.id_tipo_equipo = e.id_tipo_equipo`
-    );
+    const equipos = await Equipo.obtenerTodos();
     res.status(200).json(equipos);
   } catch (error) {
     handleError(res, 500, ERROR_MESSAGES.RETRIEVAL_ERROR, error);
   }
 };
 
-// Controlador para consultar un equipo específico por modelo
 const consultarUnEquipo = async (req, res) => {
-  const { idEquipo } = req.params.id;
+  const { idEquipo } = req.params;
 
   if (!idEquipo) {
-    return res
-      .status(400)
-      .json({ message: "El ID del equipo es requerido." });
+    return res.status(400).json({ message: "El ID del equipo es requerido." });
   }
 
   try {
-    const [equipo] = await pool.query(
-      `SELECT 
-        e.*, te.nombre_tipo_equipo 
-      FROM equipos e 
-      JOIN tipo_equipo te ON te.id_tipo_equipo = e.id_tipo_equipo 
-      WHERE e.id_equipo = ?`,
-      [idEquipo]
-    );
+    const equipo = await Equipo.obtenerPorId(idEquipo);
 
     if (equipo.length === 0) {
       return res
@@ -106,7 +83,6 @@ const consultarUnEquipo = async (req, res) => {
   }
 };
 
-// Controlador para actualizar equipo
 const actualizarEquipo = async (req, res) => {
   const idEquipo = req.params.id;
   const {
@@ -130,10 +106,7 @@ const actualizarEquipo = async (req, res) => {
   }
 
   try {
-    const [equipoActualizado] = await pool.query(
-      `UPDATE equipos SET id_tipo_equipo = ?, modelo_equipo = ?, marca_equipo = ?, estado_equipo = ?, fecha_compra_equipo = ? WHERE id_equipo = ?`,
-      [...Object.values(fields), idEquipo]
-    );
+    const equipoActualizado = await Equipo.actualizar(idEquipo, fields);
 
     if (equipoActualizado.affectedRows === 0) {
       return res
@@ -147,7 +120,6 @@ const actualizarEquipo = async (req, res) => {
   }
 };
 
-// Controlador para eliminar equipo
 const eliminarEquipo = async (req, res) => {
   const idEquipo = req.params.id;
 
@@ -156,10 +128,7 @@ const eliminarEquipo = async (req, res) => {
   }
 
   try {
-    const [equipoEliminado] = await pool.query(
-      "DELETE FROM equipos WHERE id_equipo = ?",
-      [idEquipo]
-    );
+    const equipoEliminado = await Equipo.eliminar(idEquipo);
 
     if (equipoEliminado.affectedRows === 0) {
       return res

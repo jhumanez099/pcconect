@@ -1,159 +1,115 @@
-const pool = require("../config/db.js");
+const Usuario = require("../models/User.js");
+const bcrypt = require("bcryptjs");
 
-// Mensajes de error comunes
 const ERROR_MESSAGES = {
   REQUIRED_FIELDS: "Todos los campos son obligatorios.",
   USER_NOT_FOUND: "Usuario no encontrado.",
-  USER_ALREADY_REGISTERED: "El correo del usuario ya está registrado.",
   CREATION_ERROR: "Error al crear el usuario.",
   RETRIEVAL_ERROR: "Error al consultar el usuario.",
   UPDATE_ERROR: "Error al actualizar el usuario.",
   DELETE_ERROR: "Error al eliminar el usuario.",
 };
 
-// Función para enviar respuestas de error
 const handleError = (res, status, message, error = null) => {
   console.error(message, error);
-  res.status(status).json({ message });
+  res.status(status).json({ message, error: error?.message });
 };
 
-// Función de validación de campos obligatorios
 const validateFields = (fields) => {
   return Object.values(fields).every(
     (field) => field !== undefined && field !== null && field !== ""
   );
 };
 
-// Controlador para crear usuario
 const crearUsuario = async (req, res) => {
-  const {
-    nombreUsuario,
-    tipoUsuario,
-    correoUsuario,
-    contraseñaUsuario,
-    telefonoUsuario,
-    cargoUsuario,
-    estadoUsuario,
-  } = req.body;
-
-  if (
-    !validateFields({
-      nombreUsuario,
-      tipoUsuario,
-      correoUsuario,
-      contraseñaUsuario,
-      telefonoUsuario,
-      cargoUsuario,
-      estadoUsuario,
-    })
-  ) {
+  const fields = {
+    idTipoUsuario: req.body.idTipoUsuario,
+    nombreUsuario: req.body.nombreUsuario,
+    correoUsuario: req.body.correoUsuario,
+    contraseñaUsuario: req.body.contraseñaUsuario,
+    telefonoUsuario: req.body.telefonoUsuario,
+    cargoUsuario: req.body.cargoUsuario,
+    estadoUsuario: req.body.estadoUsuario,
+  };
+  
+  if (!validateFields(fields)) {
     return res.status(400).json({ message: ERROR_MESSAGES.REQUIRED_FIELDS });
   }
 
   try {
-    const [usuarioNuevo] = await pool.query(
-      "INSERT INTO usuarios(nombre_usuario, id_tipo_usuario, correo_usuario, contraseña_usuario, telefono_usuario, cargo_usuario, estado_usuario) VALUES (?, ?, ?, ?, ?, ?, ?)",
-      [
-        nombreUsuario,
-        tipoUsuario,
-        correoUsuario,
-        contraseñaUsuario,
-        telefonoUsuario,
-        cargoUsuario,
-        estadoUsuario,
-      ]
+
+    const contraseñaEncriptada = await bcrypt.hash(
+      fields.contraseñaUsuario,
+      10
     );
 
+    fields.contraseñaUsuario = contraseñaEncriptada;
+
+    const usuarioNuevo = await Usuario.crear(fields);
     res.status(201).json({
-      message: "El usuario se creó con éxito",
+      message: "Usuario creado con éxito",
       usuarioId: usuarioNuevo.insertId,
     });
   } catch (error) {
-    if (error.code === "ER_DUP_ENTRY") {
-      handleError(res, 400, ERROR_MESSAGES.USER_ALREADY_REGISTERED, error);
-    } else {
-      handleError(res, 500, ERROR_MESSAGES.CREATION_ERROR, error);
-    }
+    handleError(res, 500, ERROR_MESSAGES.CREATION_ERROR, error);
   }
 };
 
-// Controlador para consultar todos los usuarios
 const consultarUsuarios = async (req, res) => {
   try {
-    const [usuarios] = await pool.query("SELECT * FROM usuarios");
+    const usuarios = await Usuario.obtenerTodos();
     res.status(200).json(usuarios);
   } catch (error) {
     handleError(res, 500, ERROR_MESSAGES.RETRIEVAL_ERROR, error);
   }
 };
 
-// Controlador para consultar un usuario específico
 const consultarUnUsuario = async (req, res) => {
-  const { idUsuario } = req.params.id;
+  const { idUsuario } = req.params;
 
   if (!idUsuario) {
-    return res
-      .status(400)
-      .json({ message: "El ID del usuario es requerido." });
+    return res.status(400).json({ message: "El ID del usuario es requerido." });
   }
 
   try {
-    const [usuario] = await pool.query(
-      "SELECT * FROM usuarios WHERE id_usuario = ?",
-      [idUsuario]
-    );
+    const usuario = await Usuario.obtenerPorId(idUsuario);
 
     if (usuario.length === 0) {
       return res.status(404).json({ message: ERROR_MESSAGES.USER_NOT_FOUND });
     }
 
-    res.status(200).json(usuario);
+    res.status(200).json(usuario[0]);
   } catch (error) {
     handleError(res, 500, ERROR_MESSAGES.RETRIEVAL_ERROR, error);
   }
 };
 
-// Controlador para actualizar un usuario
 const actualizarUsuario = async (req, res) => {
   const idUsuario = req.params.id;
-  const {
-    nombreUsuario,
-    tipoUsuario,
-    correoUsuario,
-    contraseñaUsuario,
-    telefonoUsuario,
-    cargoUsuario,
-    estadoUsuario,
-  } = req.body;
+  const fields = {
+    idTipoUsuario: req.body.idTipoUsuario,
+    nombreUsuario: req.body.nombreUsuario,
+    correoUsuario: req.body.correoUsuario,
+    contraseñaUsuario: req.body.contraseñaUsuario,
+    telefonoUsuario: req.body.telefonoUsuario,
+    cargoUsuario: req.body.cargoUsuario,
+    estadoUsuario: req.body.estadoUsuario,
+  };
 
-  if (
-    !validateFields({
-      nombreUsuario,
-      tipoUsuario,
-      correoUsuario,
-      contraseñaUsuario,
-      telefonoUsuario,
-      cargoUsuario,
-      estadoUsuario,
-    })
-  ) {
+  if (!validateFields(fields)) {
     return res.status(400).json({ message: ERROR_MESSAGES.REQUIRED_FIELDS });
   }
 
   try {
-    const [usuarioActualizado] = await pool.query(
-      "UPDATE usuarios SET nombre_usuario = ?, id_tipo_usuario = ?, correo_usuario = ?, contraseña_usuario = ?, telefono_usuario = ?, cargo_usuario = ?, estado_usuario = ? WHERE id_usuario = ?",
-      [
-        nombreUsuario,
-        tipoUsuario,
-        correoUsuario,
-        contraseñaUsuario,
-        telefonoUsuario,
-        cargoUsuario,
-        estadoUsuario,
-        idUsuario,
-      ]
+
+    const contraseñaEncriptada = await bcrypt.hash(
+      fields.contraseñaUsuario,
+      10
     );
+
+    fields.contraseñaUsuario = contraseñaEncriptada;
+
+    const usuarioActualizado = await Usuario.actualizar(idUsuario, fields);
 
     if (usuarioActualizado.affectedRows === 0) {
       return res.status(404).json({ message: ERROR_MESSAGES.USER_NOT_FOUND });
@@ -165,7 +121,6 @@ const actualizarUsuario = async (req, res) => {
   }
 };
 
-// Controlador para eliminar un usuario
 const eliminarUsuario = async (req, res) => {
   const idUsuario = req.params.id;
 
@@ -174,10 +129,7 @@ const eliminarUsuario = async (req, res) => {
   }
 
   try {
-    const [usuarioEliminado] = await pool.query(
-      "DELETE FROM usuarios WHERE id_usuario = ?",
-      [idUsuario]
-    );
+    const usuarioEliminado = await Usuario.eliminar(idUsuario);
 
     if (usuarioEliminado.affectedRows === 0) {
       return res.status(404).json({ message: ERROR_MESSAGES.USER_NOT_FOUND });

@@ -1,6 +1,5 @@
-const pool = require("../config/db.js");
+const Pedido = require("../models/Order.js");
 
-// Mensajes de error comunes
 const ERROR_MESSAGES = {
   REQUIRED_FIELDS: "Todos los campos son obligatorios.",
   ORDER_NOT_FOUND: "Pedido no encontrado.",
@@ -10,20 +9,17 @@ const ERROR_MESSAGES = {
   DELETE_ERROR: "Error al eliminar el pedido.",
 };
 
-// Función para enviar respuestas de error
 const handleError = (res, status, message, error = null) => {
   console.error(message, error);
   res.status(status).json({ message, error: error?.message });
 };
 
-// Función auxiliar para validar campos requeridos
 const validateFields = (fields) => {
   return Object.values(fields).every(
     (field) => field !== undefined && field !== null && field !== ""
   );
 };
 
-// Controlador para crear pedido
 const crearPedidos = async (req, res) => {
   const fields = {
     fechaPedido: req.body.fechaPedido,
@@ -41,92 +37,35 @@ const crearPedidos = async (req, res) => {
     return res.status(400).json({ message: ERROR_MESSAGES.REQUIRED_FIELDS });
   }
 
-  const {
-    fechaPedido,
-    fechaInicioPedido,
-    fechaFinPedido,
-    precioTotalPedido,
-    estadoPedido,
-    cliente,
-    usuario,
-    tipoPedido,
-    motivoPedido,
-  } = fields;
-
   try {
-    const [pedidoNuevo] = await pool.query(
-      "INSERT INTO pedidos(fecha_pedido, fecha_inicio_pedido, fecha_fin_pedido, precio_total_pedido, estado_pedido, id_cliente, id_usuario, id_tipo_pedido, motivo_pedido) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-      [
-        fechaPedido,
-        fechaInicioPedido,
-        fechaFinPedido,
-        precioTotalPedido,
-        estadoPedido,
-        cliente,
-        usuario,
-        tipoPedido,
-        motivoPedido,
-      ]
-    );
-
-    res
-      .status(201)
-      .json({
-        message: "El pedido se creó con éxito",
-        pedidoId: pedidoNuevo.insertId,
-      });
+    const pedidoNuevo = await Pedido.crear(fields);
+    res.status(201).json({
+      message: "El pedido se creó con éxito",
+      pedidoId: pedidoNuevo.insertId,
+    });
   } catch (error) {
     handleError(res, 500, ERROR_MESSAGES.CREATION_ERROR, error);
   }
 };
 
-// Controlador para consultar todos los pedidos
 const consultarPedidos = async (req, res) => {
   try {
-    const [pedidos] = await pool.query(`
-      SELECT 
-        p.id_pedido, p.fecha_pedido, p.fecha_inicio_pedido, p.fecha_fin_pedido, 
-        p.precio_total_pedido, p.estado_pedido, p.id_cliente, p.id_usuario, 
-        p.id_tipo_pedido, p.motivo_pedido, p.fecha_creacion_pedido, 
-        p.fecha_actualizacion_pedido, c.nombre_cliente, u.nombre_usuario, 
-        t.nombre_tipo_pedido 
-      FROM pedidos p
-      JOIN clientes c ON c.id_cliente = p.id_cliente
-      JOIN usuarios u ON u.id_usuario = p.id_usuario
-      JOIN tipo_pedido t ON t.id_tipo_pedido = p.id_tipo_pedido
-    `);
+    const pedidos = await Pedido.obtenerTodos();
     res.status(200).json(pedidos);
   } catch (error) {
     handleError(res, 500, ERROR_MESSAGES.RETRIEVAL_ERROR, error);
   }
 };
 
-// Controlador para consultar un pedido específico
 const consultarUnPedido = async (req, res) => {
-  const { idPedido } = req.params.id;
+  const { idPedido } = req.params;
 
   if (!idPedido) {
     return res.status(400).json({ message: "El ID del pedido es requerido." });
   }
 
   try {
-    const [pedido] = await pool.query(
-      `
-      SELECT 
-        p.id_pedido, p.fecha_pedido, p.fecha_inicio_pedido, p.fecha_fin_pedido, 
-        p.precio_total_pedido, p.estado_pedido, p.id_cliente, p.id_usuario, 
-        p.id_tipo_pedido, p.motivo_pedido, p.fecha_creacion_pedido, 
-        p.fecha_actualizacion_pedido, c.nombre_cliente, u.nombre_usuario, 
-        t.nombre_tipo_pedido 
-      FROM pedidos p
-      JOIN clientes c ON c.id_cliente = p.id_cliente
-      JOIN usuarios u ON u.id_usuario = p.id_usuario
-      JOIN tipo_pedido t ON t.id_tipo_pedido = p.id_tipo_pedido
-      WHERE p.id_pedido = ?
-      LIMIT 1
-    `,
-      [idPedido]
-    );
+    const pedido = await Pedido.obtenerPorId(idPedido);
 
     if (pedido.length === 0) {
       return res.status(404).json({ message: ERROR_MESSAGES.ORDER_NOT_FOUND });
@@ -138,7 +77,6 @@ const consultarUnPedido = async (req, res) => {
   }
 };
 
-// Controlador para actualizar un pedido
 const actualizarPedido = async (req, res) => {
   const idPedido = req.params.id;
   const fields = {
@@ -157,34 +95,8 @@ const actualizarPedido = async (req, res) => {
     return res.status(400).json({ message: ERROR_MESSAGES.REQUIRED_FIELDS });
   }
 
-  const {
-    fechaPedido,
-    fechaInicioPedido,
-    fechaFinPedido,
-    precioTotalPedido,
-    estadoPedido,
-    cliente,
-    usuario,
-    tipoPedido,
-    motivoPedido,
-  } = fields;
-
   try {
-    const [pedidoActualizado] = await pool.query(
-      "UPDATE pedidos SET fecha_pedido = ?, fecha_inicio_pedido = ?, fecha_fin_pedido = ?, precio_total_pedido = ?, estado_pedido = ?, id_cliente = ?, id_usuario = ?, id_tipo_pedido = ?, motivo_pedido = ? WHERE id_pedido = ?",
-      [
-        fechaPedido,
-        fechaInicioPedido,
-        fechaFinPedido,
-        precioTotalPedido,
-        estadoPedido,
-        cliente,
-        usuario,
-        tipoPedido,
-        motivoPedido,
-        idPedido,
-      ]
-    );
+    const pedidoActualizado = await Pedido.actualizar(idPedido, fields);
 
     if (pedidoActualizado.affectedRows === 0) {
       return res.status(404).json({ message: ERROR_MESSAGES.ORDER_NOT_FOUND });
@@ -196,7 +108,6 @@ const actualizarPedido = async (req, res) => {
   }
 };
 
-// Controlador para eliminar un pedido
 const eliminarPedido = async (req, res) => {
   const idPedido = req.params.id;
 
@@ -205,10 +116,7 @@ const eliminarPedido = async (req, res) => {
   }
 
   try {
-    const [pedidoEliminado] = await pool.query(
-      "DELETE FROM pedidos WHERE id_pedido = ? LIMIT 1",
-      [idPedido]
-    );
+    const pedidoEliminado = await Pedido.eliminar(idPedido);
 
     if (pedidoEliminado.affectedRows === 0) {
       return res.status(404).json({ message: ERROR_MESSAGES.ORDER_NOT_FOUND });

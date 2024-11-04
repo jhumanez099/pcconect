@@ -16,7 +16,7 @@ router.post("/tiposUsuarios", crearTipoUsuario);
 router.get("/tiposUsuarios", consultarTipoUsuario);
 
 // Define la ruta para consultar un tipo de usuario específico
-router.get("/tiposUsuarios/:id", consultarUnTipoUsuario);
+router.get("/tiposUsuarios/:idTipoUsuario", consultarUnTipoUsuario);
 
 // Define la ruta para actualizar un tipo de usuario
 router.put("/tiposUsuarios/:id", actualizarTipoUsuario);

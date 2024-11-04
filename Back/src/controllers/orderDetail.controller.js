@@ -1,6 +1,5 @@
-const pool = require("../config/db.js");
+const DetallePedido = require("../models/OrderDetail.js");
 
-// Mensajes de error comunes
 const ERROR_MESSAGES = {
   REQUIRED_FIELDS: "Todos los campos son obligatorios.",
   ORDER_DETAIL_NOT_FOUND: "Detalle del pedido no encontrado.",
@@ -10,20 +9,17 @@ const ERROR_MESSAGES = {
   DELETE_ERROR: "Error al eliminar el detalle del pedido.",
 };
 
-// Función para enviar respuestas de error
 const handleError = (res, status, message, error = null) => {
   console.error(message, error);
   res.status(status).json({ message });
 };
 
-// Función para validar campos obligatorios
 const validateFields = (fields) => {
   return fields.every(
     (field) => field !== undefined && field !== null && field !== ""
   );
 };
 
-// Controlador para crear detalle del pedido
 const crearDetallePedido = async (req, res) => {
   const {
     pedido,
@@ -50,19 +46,17 @@ const crearDetallePedido = async (req, res) => {
   }
 
   try {
-    const [detallePedidoNuevo] = await pool.query(
-      "INSERT INTO detalle_pedido(id_pedido, id_equipo, cantidad_detalle_pedido, precio_unitario_detalle_pedido, subtotal_detalle_pedido, fecha_inicio_detalle_pedido, fecha_fin_detalle_pedido) VALUES (?, ?, ?, ?, ?, ?, ?)",
-      [
-        pedido,
-        equipo,
-        cantidadDetallePedido,
-        precioUnitarioDetallePedido,
-        subtotalDetallePedido,
-        fechaInicioDetallePedido,
-        fechaFinDetallePedido,
-      ]
-    );
+    const fields = {
+      pedido,
+      equipo,
+      cantidadDetallePedido,
+      precioUnitarioDetallePedido,
+      subtotalDetallePedido,
+      fechaInicioDetallePedido,
+      fechaFinDetallePedido,
+    };
 
+    const detallePedidoNuevo = await DetallePedido.crear(fields);
     res.status(201).json({
       message: "El detalle del pedido se creó con éxito",
       detallePedidoId: detallePedidoNuevo.insertId,
@@ -72,24 +66,17 @@ const crearDetallePedido = async (req, res) => {
   }
 };
 
-// Controlador para consultar todos los detalles de los pedidos
 const consultarDetallesPedidos = async (req, res) => {
   try {
-    const [detallesPedidos] = await pool.query(
-      `SELECT 
-        d.*, e.nombre_equipo 
-      FROM detalle_pedido d 
-      JOIN equipos e ON d.id_equipo = e.id_equipo`
-    );
+    const detallesPedidos = await DetallePedido.obtenerTodos();
     res.status(200).json(detallesPedidos);
   } catch (error) {
     handleError(res, 500, ERROR_MESSAGES.RETRIEVAL_ERROR, error);
   }
 };
 
-// Controlador para consultar un detalle del pedido específico
 const consultarUnDetallePedido = async (req, res) => {
-  const { idDetallePedido } = req.params.id;
+  const { idDetallePedido } = req.params;
 
   if (!idDetallePedido) {
     return res
@@ -98,13 +85,7 @@ const consultarUnDetallePedido = async (req, res) => {
   }
 
   try {
-    const [detallePedido] = await pool.query(
-      `SELECT 
-        d.*, e.nombre_equipo 
-      FROM detalle_pedido d 
-      JOIN equipos e ON d.id_equipo = e.id_equipo WHERE d.id_detalle_pedido = ?`,
-      [idDetallePedido]
-    );
+    const detallePedido = await DetallePedido.obtenerPorId(idDetallePedido);
 
     if (detallePedido.length === 0) {
       return res
@@ -112,13 +93,12 @@ const consultarUnDetallePedido = async (req, res) => {
         .json({ message: ERROR_MESSAGES.ORDER_DETAIL_NOT_FOUND });
     }
 
-    res.status(200).json(detallePedido);
+    res.status(200).json(detallePedido[0]);
   } catch (error) {
     handleError(res, 500, ERROR_MESSAGES.RETRIEVAL_ERROR, error);
   }
 };
 
-// Controlador para actualizar un detalle del pedido
 const actualizarDetallePedido = async (req, res) => {
   const idDetallePedido = req.params.id;
   const {
@@ -146,18 +126,19 @@ const actualizarDetallePedido = async (req, res) => {
   }
 
   try {
-    const [detallePedidoActualizado] = await pool.query(
-      "UPDATE detalle_pedido SET id_pedido = ?, id_equipo = ?, cantidad_detalle_pedido = ?, precio_unitario_detalle_pedido = ?, subtotal_detalle_pedido = ?, fecha_inicio_detalle_pedido = ?, fecha_fin_detalle_pedido = ? WHERE id_detalle_pedido = ?",
-      [
-        pedido,
-        equipo,
-        cantidadDetallePedido,
-        precioUnitarioDetallePedido,
-        subtotalDetallePedido,
-        fechaInicioDetallePedido,
-        fechaFinDetallePedido,
-        idDetallePedido,
-      ]
+    const fields = {
+      pedido,
+      equipo,
+      cantidadDetallePedido,
+      precioUnitarioDetallePedido,
+      subtotalDetallePedido,
+      fechaInicioDetallePedido,
+      fechaFinDetallePedido,
+    };
+
+    const detallePedidoActualizado = await DetallePedido.actualizar(
+      idDetallePedido,
+      fields
     );
 
     if (detallePedidoActualizado.affectedRows === 0) {
@@ -174,7 +155,6 @@ const actualizarDetallePedido = async (req, res) => {
   }
 };
 
-// Controlador para eliminar un detalle del pedido
 const eliminarDetallePedido = async (req, res) => {
   const idDetallePedido = req.params.id;
 
@@ -185,9 +165,8 @@ const eliminarDetallePedido = async (req, res) => {
   }
 
   try {
-    const [detallePedidoEliminado] = await pool.query(
-      "DELETE FROM detalle_pedido WHERE id_detalle_pedido = ?",
-      [idDetallePedido]
+    const detallePedidoEliminado = await DetallePedido.eliminar(
+      idDetallePedido
     );
 
     if (detallePedidoEliminado.affectedRows === 0) {
