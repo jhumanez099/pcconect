@@ -1,6 +1,5 @@
-const pool = require("../config/db.js");
+const TipoPedido = require("../models/OrderType.js");
 
-// Mensajes de error comunes
 const ERROR_MESSAGES = {
   REQUIRED_FIELDS: "El nombre del tipo del pedido es requerido.",
   ORDER_TYPE_NOT_FOUND: "Tipo de pedido no encontrado.",
@@ -11,20 +10,17 @@ const ERROR_MESSAGES = {
   DELETE_ERROR: "Error al eliminar el tipo de pedido.",
 };
 
-// Función para enviar respuestas de error
 const handleError = (res, status, message, error = null) => {
   console.error(message, error);
   res.status(status).json({ message });
 };
 
-// Función de validación de campos obligatorios
 const validateFields = (fields) => {
   return Object.values(fields).every(
     (field) => field !== undefined && field !== null && field !== ""
   );
 };
 
-// Controlador para crear tipo de pedido
 const crearTipoPedido = async (req, res) => {
   const { nombreTipoPedido } = req.body;
 
@@ -33,10 +29,7 @@ const crearTipoPedido = async (req, res) => {
   }
 
   try {
-    const [tipoPedidoNuevo] = await pool.query(
-      "INSERT INTO tipo_pedido(nombre_tipo_pedido) VALUES (?)",
-      [nombreTipoPedido]
-    );
+    const tipoPedidoNuevo = await TipoPedido.crear(nombreTipoPedido);
 
     res.status(201).json({
       message: "El tipo de pedido se creó con éxito",
@@ -51,29 +44,26 @@ const crearTipoPedido = async (req, res) => {
   }
 };
 
-// Controlador para consultar todos los tipos de pedido
 const consultarTipoPedido = async (req, res) => {
   try {
-    const [tiposPedidos] = await pool.query("SELECT * FROM tipo_pedido");
+    const tiposPedidos = await TipoPedido.obtenerTodos();
     res.status(200).json(tiposPedidos);
   } catch (error) {
     handleError(res, 500, ERROR_MESSAGES.RETRIEVAL_ERROR, error);
   }
 };
 
-// Controlador para consultar un tipo de pedido específico
 const consultarUnTipoPedido = async (req, res) => {
-  const { idTipoPedido } = req.params.id;
+  const { idTipoPedido } = req.params;
 
   if (!idTipoPedido) {
-    return res.status(400).json({ message: "El ID del tipo de pedido es requerido." });
+    return res
+      .status(400)
+      .json({ message: "El ID del tipo de pedido es requerido." });
   }
 
   try {
-    const [tipoPedido] = await pool.query(
-      "SELECT * FROM tipo_pedido WHERE id_tipo_pedido = ?",
-      [idTipoPedido]
-    );
+    const tipoPedido = await TipoPedido.obtenerPorId(idTipoPedido);
 
     if (tipoPedido.length === 0) {
       return res
@@ -81,13 +71,12 @@ const consultarUnTipoPedido = async (req, res) => {
         .json({ message: ERROR_MESSAGES.ORDER_TYPE_NOT_FOUND });
     }
 
-    res.status(200).json(tipoPedido);
+    res.status(200).json(tipoPedido[0]);
   } catch (error) {
     handleError(res, 500, ERROR_MESSAGES.RETRIEVAL_ERROR, error);
   }
 };
 
-// Controlador para actualizar un tipo de pedido
 const actualizarTipoPedido = async (req, res) => {
   const idTipoPedido = req.params.id;
   const { nombreTipoPedido } = req.body;
@@ -97,9 +86,9 @@ const actualizarTipoPedido = async (req, res) => {
   }
 
   try {
-    const [tipoPedidoActualizado] = await pool.query(
-      "UPDATE tipo_pedido SET nombre_tipo_pedido = ? WHERE id_tipo_pedido = ?",
-      [nombreTipoPedido, idTipoPedido]
+    const tipoPedidoActualizado = await TipoPedido.actualizar(
+      idTipoPedido,
+      nombreTipoPedido
     );
 
     if (tipoPedidoActualizado.affectedRows === 0) {
@@ -114,7 +103,6 @@ const actualizarTipoPedido = async (req, res) => {
   }
 };
 
-// Controlador para eliminar un tipo de pedido
 const eliminarTipoPedido = async (req, res) => {
   const idTipoPedido = req.params.id;
 
@@ -125,10 +113,7 @@ const eliminarTipoPedido = async (req, res) => {
   }
 
   try {
-    const [tipoPedidoEliminado] = await pool.query(
-      "DELETE FROM tipo_pedido WHERE id_tipo_pedido = ?",
-      [idTipoPedido]
-    );
+    const tipoPedidoEliminado = await TipoPedido.eliminar(idTipoPedido);
 
     if (tipoPedidoEliminado.affectedRows === 0) {
       return res

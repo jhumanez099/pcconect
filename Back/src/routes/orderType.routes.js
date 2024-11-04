@@ -16,7 +16,7 @@ router.post("/tiposPedidos", crearTipoPedido);
 router.get("/tiposPedidos", consultarTipoPedido);
 
 // Define la ruta para consultar un tipo de pedido específico
-router.get("/tiposPedidos/:id", consultarUnTipoPedido);
+router.get("/tiposPedidos/:idTipoPedido", consultarUnTipoPedido);
 
 // Define la ruta para actualizar un tipo de pedido
 router.put("/tiposPedidos/:id", actualizarTipoPedido);

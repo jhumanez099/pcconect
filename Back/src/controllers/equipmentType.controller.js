@@ -1,6 +1,5 @@
-const pool = require("../config/db.js");
+const TipoEquipo = require("../models/EquipmentType.js");
 
-// Mensajes de error comunes
 const ERROR_MESSAGES = {
   REQUIRED_FIELDS: "El nombre del tipo de equipo es requerido.",
   EQUIPMENT_TYPE_NOT_FOUND: "Tipo de equipo no encontrado.",
@@ -11,20 +10,17 @@ const ERROR_MESSAGES = {
   DELETE_ERROR: "Error al eliminar el tipo de equipo.",
 };
 
-// Función para enviar respuestas de error
 const handleError = (res, status, message, error = null) => {
   console.error(message, error);
   res.status(status).json({ message });
 };
 
-// Validar campos obligatorios
 const validateFields = (fields) => {
   return Object.values(fields).every(
     (field) => field !== undefined && field !== null && field !== ""
   );
 };
 
-// Controlador para crear un tipo de equipo
 const crearTipoEquipo = async (req, res) => {
   const { nombreTipoEquipo } = req.body;
 
@@ -33,10 +29,7 @@ const crearTipoEquipo = async (req, res) => {
   }
 
   try {
-    const [tipoEquipoNuevo] = await pool.query(
-      "INSERT INTO tipo_equipo(nombre_tipo_equipo) VALUES (?)",
-      [nombreTipoEquipo]
-    );
+    const tipoEquipoNuevo = await TipoEquipo.crear(nombreTipoEquipo);
 
     res.status(201).json({
       message: "El tipo de equipo se creó con éxito",
@@ -56,29 +49,26 @@ const crearTipoEquipo = async (req, res) => {
   }
 };
 
-// Controlador para consultar todos los tipos de equipo
 const consultarTipoEquipo = async (req, res) => {
   try {
-    const [tiposEquipos] = await pool.query("SELECT * FROM tipo_equipo");
+    const tiposEquipos = await TipoEquipo.obtenerTodos();
     res.status(200).json(tiposEquipos);
   } catch (error) {
     handleError(res, 500, ERROR_MESSAGES.RETRIEVAL_ERROR, error);
   }
 };
 
-// Controlador para consultar un tipo de equipo específico
 const consultarUnTipoEquipo = async (req, res) => {
-  const { idTipoEquipo } = req.params.id;
+  const { idTipoEquipo } = req.params;
 
   if (!idTipoEquipo) {
-    return res.status(400).json({ message: "El ID del tipo de equipo es requerido. " });
+    return res
+      .status(400)
+      .json({ message: "El ID del tipo de equipo es requerido." });
   }
 
   try {
-    const [tipoEquipo] = await pool.query(
-      "SELECT * FROM tipo_equipo WHERE id_tipo_equipo = ?",
-      [idTipoEquipo]
-    );
+    const tipoEquipo = await TipoEquipo.obtenerPorId(idTipoEquipo);
 
     if (tipoEquipo.length === 0) {
       return res
@@ -86,13 +76,12 @@ const consultarUnTipoEquipo = async (req, res) => {
         .json({ message: ERROR_MESSAGES.EQUIPMENT_TYPE_NOT_FOUND });
     }
 
-    res.status(200).json(tipoEquipo);
+    res.status(200).json(tipoEquipo[0]);
   } catch (error) {
     handleError(res, 500, ERROR_MESSAGES.RETRIEVAL_ERROR, error);
   }
 };
 
-// Controlador para actualizar un tipo de equipo
 const actualizarTipoEquipo = async (req, res) => {
   const idTipoEquipo = req.params.id;
   const { nombreTipoEquipo } = req.body;
@@ -102,9 +91,9 @@ const actualizarTipoEquipo = async (req, res) => {
   }
 
   try {
-    const [tipoEquipoActualizado] = await pool.query(
-      "UPDATE tipo_equipo SET nombre_tipo_equipo = ? WHERE id_tipo_equipo = ?",
-      [nombreTipoEquipo, idTipoEquipo]
+    const tipoEquipoActualizado = await TipoEquipo.actualizar(
+      idTipoEquipo,
+      nombreTipoEquipo
     );
 
     if (tipoEquipoActualizado.affectedRows === 0) {
@@ -119,7 +108,6 @@ const actualizarTipoEquipo = async (req, res) => {
   }
 };
 
-// Controlador para eliminar un tipo de equipo
 const eliminarTipoEquipo = async (req, res) => {
   const idTipoEquipo = req.params.id;
 
@@ -130,10 +118,7 @@ const eliminarTipoEquipo = async (req, res) => {
   }
 
   try {
-    const [tipoEquipoEliminado] = await pool.query(
-      "DELETE FROM tipo_equipo WHERE id_tipo_equipo = ?",
-      [idTipoEquipo]
-    );
+    const tipoEquipoEliminado = await TipoEquipo.eliminar(idTipoEquipo);
 
     if (tipoEquipoEliminado.affectedRows === 0) {
       return res

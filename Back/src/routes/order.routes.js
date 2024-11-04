@@ -16,7 +16,7 @@ router.post("/pedidos", crearPedidos);
 router.get("/pedidos", consultarPedidos);
 
 // Define la ruta para consultar un pedido específico
-router.get("/pedidos/:id", consultarUnPedido);
+router.get("/pedidos/:idPedido", consultarUnPedido);
 
 // Define la ruta para actualizar un pedido
 router.put("/pedidos/:id", actualizarPedido);
