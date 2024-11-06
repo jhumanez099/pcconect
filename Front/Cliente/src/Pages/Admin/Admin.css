@@ -1,0 +1,23 @@
+.fondo{
+    background: rgba(208, 230, 250, 1);
+    background: -moz-linear-gradient(left, rgba(208, 230, 250, 1) 0%, rgba(255, 255, 255, 1) 0%, rgba(29, 123, 224, 1) 100%);
+    background: -webkit-gradient(left top, right top, color-stop(0%, rgba(208, 230, 250, 1)), color-stop(0%, rgba(255, 255, 255, 1)), color-stop(100%, rgba(29, 123, 224, 1)));
+    background: -webkit-linear-gradient(left, rgba(208, 230, 250, 1) 0%, rgba(255, 255, 255, 1) 0%, rgba(29, 123, 224, 1) 100%);
+    background: -o-linear-gradient(left, rgba(208, 230, 250, 1) 0%, rgba(255, 255, 255, 1) 0%, rgba(29, 123, 224, 1) 100%);
+    background: -ms-linear-gradient(left, rgba(208, 230, 250, 1) 0%, rgba(255, 255, 255, 1) 0%, rgba(29, 123, 224, 1) 100%);
+    background: linear-gradient(to right, rgba(208, 230, 250, 1) 0%, rgba(255, 255, 255, 1) 0%, rgba(29, 123, 224, 1) 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#d0e6fa', endColorstr='#1d7be0', GradientType=1);
+  }
+  
+  .lista-items{
+      border-bottom: 1px solid #fdfbfb; /* Establece el borde inferior */
+      cursor:pointer;
+  }
+  .nl:hover{
+      box-shadow: 5px 10px 20px 1px rgb(230, 230, 254);
+      transition: all 0.8s linear;
+  }
+  
+  .bg-lista{
+      background-color: white;
+  } 
