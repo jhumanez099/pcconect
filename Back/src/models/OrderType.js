@@ -15,10 +15,10 @@ const TipoPedido = {
     return tiposPedidos;
   },
 
-  // Obtener un tipo de pedido por ID
-  async obtenerPorId(id) {
-    const query = "SELECT * FROM tipo_pedido WHERE id_tipo_pedido = ?";
-    const [tipoPedido] = await pool.query(query, [id]);
+  // Obtener un tipo de pedido por nombre
+  async obtenerPorNombre(nombre) {
+    const query = "SELECT * FROM tipo_pedido WHERE nombre_tipo_pedido = ?";
+    const [tipoPedido] = await pool.query(query, [nombre]);
     return tipoPedido;
   },
 

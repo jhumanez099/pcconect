@@ -25,6 +25,7 @@ const crearEquipo = async (req, res) => {
     nombreTipoEquipo,
     modeloEquipo,
     marcaEquipo,
+    especificacionesEquipo,
     estadoEquipo,
     fechaCompraEquipo,
   } = req.body;
@@ -33,6 +34,7 @@ const crearEquipo = async (req, res) => {
     nombreTipoEquipo,
     modeloEquipo,
     marcaEquipo,
+    especificacionesEquipo,
     estadoEquipo,
     fechaCompraEquipo,
   };
@@ -62,14 +64,14 @@ const consultarEquipo = async (req, res) => {
 };
 
 const consultarUnEquipo = async (req, res) => {
-  const { idEquipo } = req.params;
+  const { modeloEquipo } = req.params;
 
-  if (!idEquipo) {
-    return res.status(400).json({ message: "El ID del equipo es requerido." });
+  if (!modeloEquipo) {
+    return res.status(400).json({ message: "El modelo del equipo es requerido." });
   }
 
   try {
-    const equipo = await Equipo.obtenerPorId(idEquipo);
+    const equipo = await Equipo.obtenerPorModelo(modeloEquipo);
 
     if (equipo.length === 0) {
       return res

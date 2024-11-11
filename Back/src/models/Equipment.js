@@ -5,9 +5,9 @@ const Equipo = {
   async crear(fields) {
     const query = `
       INSERT INTO 
-        equipos(id_tipo_equipo, modelo_equipo, marca_equipo, estado_equipo, fecha_compra_equipo)
+        equipos(id_tipo_equipo, modelo_equipo, marca_equipo, especificaciones_equipo, estado_equipo, fecha_compra_equipo)
       VALUES 
-        (?, ?, ?, ?, ?)
+        (?, ?, ?, ?, ?, ?)
     `;
     const [result] = await pool.query(query, Object.values(fields));
     return result;
@@ -17,7 +17,7 @@ const Equipo = {
   async obtenerTodos() {
     const query = `
       SELECT 
-        e.*, te.nombre_tipo_equipo 
+        e.*, te.* 
       FROM 
         equipos e 
       JOIN 
@@ -27,21 +27,21 @@ const Equipo = {
     return equipos;
   },
 
-  // Consultar un equipo por ID
-  async obtenerPorId(id) {
+  // Consultar un equipo por modelo
+  async obtenerPorModelo(modelo) {
     const query = `
       SELECT 
-        e.*, te.nombre_tipo_equipo 
+        e.*, te.*
       FROM 
         equipos e 
       JOIN 
         tipo_equipo te ON te.id_tipo_equipo = e.id_tipo_equipo 
       WHERE 
-        e.id_equipo = ?
+        e.modelo_equipo = ?
       LIMIT   
         1
     `;
-    const [equipo] = await pool.query(query, [id]);
+    const [equipo] = await pool.query(query, [modelo]);
     return equipo;
   },
 
@@ -51,7 +51,7 @@ const Equipo = {
       UPDATE 
         equipos 
       SET 
-        id_tipo_equipo = ?, modelo_equipo = ?, marca_equipo = ?, estado_equipo = ?, fecha_compra_equipo = ?
+        id_tipo_equipo = ?, modelo_equipo = ?, marca_equipo = ?, especificaciones_equipo = ?, estado_equipo = ?, fecha_compra_equipo = ?
       WHERE 
         id_equipo = ?
     `;

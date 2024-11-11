@@ -54,16 +54,16 @@ const consultarTipoPedido = async (req, res) => {
 };
 
 const consultarUnTipoPedido = async (req, res) => {
-  const { idTipoPedido } = req.params;
+  const { nombreTipoPedido } = req.params;
 
-  if (!idTipoPedido) {
+  if (!nombreTipoPedido) {
     return res
       .status(400)
-      .json({ message: "El ID del tipo de pedido es requerido." });
+      .json({ message: "El nombre del tipo de pedido es requerido." });
   }
 
   try {
-    const tipoPedido = await TipoPedido.obtenerPorId(idTipoPedido);
+    const tipoPedido = await TipoPedido.obtenerPorNombre(nombreTipoPedido);
 
     if (tipoPedido.length === 0) {
       return res

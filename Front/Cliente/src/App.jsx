@@ -1,12 +1,15 @@
 import './App.css'
-import Clientes from './Pages/Admin/Clientes/Clientes'
+import Clientes from './Pages/Admin/Clientes/Clientes.jsx'
+import Login from './Pages/Login'
 
 
 export default function App() {
 
   return (
-    
-    <Clientes> </Clientes>
+    // <Clientes />
+    <div className="App">
+      <Login />
+    </div>
   
   )
 }
