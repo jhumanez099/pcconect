@@ -5,7 +5,7 @@ import Clientes from "../Admin/Clientes/Clientes"
 export default function Admin() {
 
     const componentsContext ={
-        Clientes: <Clientes> </Clientes>
+        Clientes: <Clientes>  </Clientes>
 
     };
 

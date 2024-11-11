@@ -27,9 +27,10 @@ const crearClientes = async (req, res) => {
     direccionCliente: req.body.direccionCliente,
     telefonoCliente: req.body.telefonoCliente,
     correoCliente: req.body.correoCliente,
-    estadoCliente: req.body.estadoCliente,
     encargadoCliente: req.body.encargadoCliente,
+    estadoCliente: req.body.estadoCliente
   };
+
 
   if (!validateFields(fields)) {
     return res.status(400).json({ message: ERROR_MESSAGES.REQUIRED_FIELDS });
