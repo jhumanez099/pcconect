@@ -1,5 +1,5 @@
 import './App.css'
-import Clientes from './Pages/Admin/Clientes/Clientes.jsx'
+import CrearClientes from './Pages/Admin/Clientes/CrearCliente.jsx'
 import Login from './Pages/Login'
 
 
@@ -8,7 +8,8 @@ export default function App() {
   return (
     // <Clientes />
     <div className="App">
-      <Login />
+      {/* <Login /> */}
+      <CrearClientes />
     </div>
   
   )
