@@ -21,6 +21,7 @@ const validateFields = (fields) => {
 };
 
 const crearEquipo = async (req, res) => {
+  console.log(req.body.fechaCompraEquipo)
   const {
     nombreTipoEquipo,
     modeloEquipo,
