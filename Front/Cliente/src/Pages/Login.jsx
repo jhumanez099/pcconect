@@ -10,10 +10,7 @@ const Login = () => {
   };
 
   return (
-    <div
-      className="vh-100 vw-100 d-flex flex-column justify-content-center align-items-center"
-      style={{ backgroundColor: 'rgb(0, 138, 230)' }}
-    >
+    <div className="vh-100 vw-100 d-flex flex-column justify-content-center align-items-center  page-background">
       <div className="d-flex justify-content-center align-items-center flex-grow-1">
         <div
           className="bg-white rounded card shadow p-4"
@@ -26,7 +23,7 @@ const Login = () => {
         >
           <div className="row my-4 gx-5">
             <div className="col-12 text-start">
-              <h1 className="text-center mb-4">Crear cliente</h1>
+              <h1 className="text-center mb-4">Iniciar Sesion</h1>
             </div>
           </div>
           <form onSubmit={handleSubmit(onSubmit)} className="px-3">
