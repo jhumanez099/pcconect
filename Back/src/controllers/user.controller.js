@@ -64,25 +64,6 @@ const consultarUsuarios = async (req, res) => {
   }
 };
 
-const consultarUnUsuario = async (req, res) => {
-  const { nombreUsuario } = req.params;
-
-  if (!nombreUsuario) {
-    return res.status(400).json({ message: "El nombre del usuario es requerido." });
-  }
-
-  try {
-    const usuario = await Usuario.obtenerPorNombre(nombreUsuario);
-
-    if (usuario.length === 0) {
-      return res.status(404).json({ message: ERROR_MESSAGES.USER_NOT_FOUND });
-    }
-
-    res.status(200).json(usuario[0]);
-  } catch (error) {
-    handleError(res, 500, ERROR_MESSAGES.RETRIEVAL_ERROR, error);
-  }
-};
 
 const actualizarUsuario = async (req, res) => {
   const idUsuario = req.params.id;
@@ -163,7 +144,6 @@ const eliminarUsuario = async (req, res) => {
 module.exports = {
   crearUsuario,
   consultarUsuarios,
-  consultarUnUsuario,
   actualizarUsuario,
   eliminarUsuario,
 };

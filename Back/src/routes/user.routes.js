@@ -15,9 +15,6 @@ router.post("/usuarios", crearUsuario);
 // Define la ruta para consultar todos los usuarios
 router.get("/usuarios", consultarUsuarios);
 
-// Define la ruta para consultar un usuario específico
-router.get("/usuarios/:nombreUsuario", consultarUnUsuario);
-
 // Define la ruta para actualizar un usuario
 router.put("/usuarios/:id", actualizarUsuario);
 

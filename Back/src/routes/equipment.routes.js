@@ -17,9 +17,6 @@ router.post("/equipos", crearEquipo);
 // Consultar todos los equipos
 router.get("/equipos", consultarEquipo);
 
-// Consultar un equipo específico por ID
-router.get("/equipos/:modeloEquipo", consultarUnEquipo);
-
 // Actualizar un equipo específico por ID
 router.put("/equipos/:id", actualizarEquipo);
 

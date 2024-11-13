@@ -173,7 +173,6 @@ const eliminarDetallePedido = async (req, res) => {
 module.exports = {
   crearDetallePedido,
   consultarDetallesPedidos,
-  consultarUnDetallePedido,
   actualizarDetallePedido,
   eliminarDetallePedido,
 };

@@ -129,7 +129,6 @@ const eliminarTipoUsuario = async (req, res) => {
 module.exports = {
   crearTipoUsuario,
   consultarTipoUsuario,
-  consultarUnTipoUsuario,
   actualizarTipoUsuario,
   eliminarTipoUsuario,
 };
