@@ -59,16 +59,16 @@ const consultarTipoEquipo = async (req, res) => {
 };
 
 const consultarUnTipoEquipo = async (req, res) => {
-  const { idTipoEquipo } = req.params;
+  const { nombreTipoEquipo } = req.params;
 
-  if (!idTipoEquipo) {
+  if (!nombreTipoEquipo) {
     return res
       .status(400)
-      .json({ message: "El ID del tipo de equipo es requerido." });
+      .json({ message: "El nombre del tipo de equipo es requerido." });
   }
 
   try {
-    const tipoEquipo = await TipoEquipo.obtenerPorId(idTipoEquipo);
+    const tipoEquipo = await TipoEquipo.obtenerPorNombre(nombreTipoEquipo);
 
     if (tipoEquipo.length === 0) {
       return res

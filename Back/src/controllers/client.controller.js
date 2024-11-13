@@ -61,14 +61,14 @@ const consultarClientes = async (req, res) => {
 };
 
 const consultarUnCliente = async (req, res) => {
-  const { idCliente } = req.params;
+  const { nombreCliente } = req.params;
 
-  if (!idCliente) {
-    return res.status(400).json({ message: "El ID del cliente es requerido." });
+  if (!nombreCliente) {
+    return res.status(400).json({ message: "El nombre del cliente es requerido." });
   }
 
   try {
-    const cliente = await Cliente.obtenerPorId(idCliente);
+    const cliente = await Cliente.obtenerPorNombre(nombreCliente);
 
     if (cliente.length === 0) {
       return res.status(404).json({ message: ERROR_MESSAGES.CLIENT_NOT_FOUND });

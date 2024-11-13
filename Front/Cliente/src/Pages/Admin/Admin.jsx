@@ -1,12 +1,12 @@
 import './Admin.css'
 
 import Clientes from "../Admin/Clientes/Clientes"
+import Equipos from "../Admin/Equipo/crearEquipo"
 
 export default function Admin() {
 
     const componentsContext ={
         Clientes: <Clientes>  </Clientes>
-
     };
 
 

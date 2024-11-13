@@ -27,11 +27,11 @@ const Usuario = {
     return usuarios;
   },
 
-  // Consultar un usuario por ID
-  async obtenerPorId(id) {
+  // Consultar un usuario por nombre
+  async obtenerPorNombre(nombre) {
     const query = `
       SELECT 
-        u.nombre_usuario, u.correo_usuario, u.contraseña_usuario, u.telefono_usuario, u.cargo_usuario, u.estado_usuario, tu.nombre_tipo_usuario  
+        u.*, tu.*
       FROM 
         usuarios u
       JOIN 
@@ -41,7 +41,7 @@ const Usuario = {
       LIMIT 
         1
     `;
-    const [usuario] = await pool.query(query, [id]);
+    const [usuario] = await pool.query(query, [nombre]);
     return usuario;
   },
 

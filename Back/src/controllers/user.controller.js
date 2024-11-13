@@ -65,14 +65,14 @@ const consultarUsuarios = async (req, res) => {
 };
 
 const consultarUnUsuario = async (req, res) => {
-  const { idUsuario } = req.params;
+  const { nombreUsuario } = req.params;
 
-  if (!idUsuario) {
-    return res.status(400).json({ message: "El ID del usuario es requerido." });
+  if (!nombreUsuario) {
+    return res.status(400).json({ message: "El nombre del usuario es requerido." });
   }
 
   try {
-    const usuario = await Usuario.obtenerPorId(idUsuario);
+    const usuario = await Usuario.obtenerPorNombre(nombreUsuario);
 
     if (usuario.length === 0) {
       return res.status(404).json({ message: ERROR_MESSAGES.USER_NOT_FOUND });

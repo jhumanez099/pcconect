@@ -15,10 +15,10 @@ const TipoUsuario = {
     return tiposUsuarios;
   },
 
-  // Obtener un tipo de usuario por ID
-  async obtenerPorId(id) {
-    const query = "SELECT * FROM tipo_usuario WHERE id_tipo_usuario = ?";
-    const [tipoUsuario] = await pool.query(query, [id]);
+  // Obtener un tipo de usuario por nombre
+  async obtenerPorNombre(nombre) {
+    const query = "SELECT * FROM tipo_usuario WHERE nombre_tipo_usuario = ?";
+    const [tipoUsuario] = await pool.query(query, [nombre]);
     return tipoUsuario;
   },
 

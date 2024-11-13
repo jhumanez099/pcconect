@@ -1,14 +1,20 @@
 import TipoUsuario from '../src/Pages/Admin/tipoUsuario/tipoUsuario'
 import './App.css'
-import Clientes from './Pages/Admin/Clientes/Clientes'
-import Usuarios from './Pages/Admin/Usuarios/Usuarios'
+import CrearClientes from './Pages/Admin/Clientes/CrearCliente.jsx'
+import Equipo from './Pages/Admin/Equipo/crearEquipo.jsx'
+import TipoEquipo from './Pages/Admin/Equipo/tipoEquipo'
+import Login from './Pages/Login'
 
 
 export default function App() {
 
   return (
-    
-    <Usuarios></Usuarios>
+    // <Clientes />
+    <div className="App">
+      {/* <Login /> */}
+      <Equipo />
+    </div>
+  
   )
 }
 

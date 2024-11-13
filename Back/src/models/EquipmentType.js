@@ -15,10 +15,10 @@ const TipoEquipo = {
     return tiposEquipos;
   },
 
-  // Obtener un tipo de equipo por ID
-  async obtenerPorId(id) {
-    const query = "SELECT * FROM tipo_equipo WHERE id_tipo_equipo = ? LIMIT 1";
-    const [tipoEquipo] = await pool.query(query, [id]);
+  // Obtener un tipo de equipo por nombre
+  async obtenerPorNombre(nombre) {
+    const query = "SELECT * FROM tipo_equipo WHERE nombre_tipo_equipo = ? LIMIT 1";
+    const [tipoEquipo] = await pool.query(query, [nombre]);
     return tipoEquipo;
   },
 

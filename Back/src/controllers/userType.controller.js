@@ -52,16 +52,16 @@ const consultarTipoUsuario = async (req, res) => {
 };
 
 const consultarUnTipoUsuario = async (req, res) => {
-  const { idTipoUsuario } = req.params;
+  const { nombreTipoUsuario } = req.params;
 
-  if (!validateField(idTipoUsuario)) {
+  if (!validateField(nombreTipoUsuario)) {
     return res
       .status(400)
-      .json({ message: "El ID del tipo de usuario es requerido." });
+      .json({ message: "El nombre del tipo de usuario es requerido." });
   }
 
   try {
-    const tipoUsuario = await TipoUsuario.obtenerPorId(idTipoUsuario);
+    const tipoUsuario = await TipoUsuario.obtenerPorNombre(nombreTipoUsuario);
 
     if (tipoUsuario.length === 0) {
       return res
