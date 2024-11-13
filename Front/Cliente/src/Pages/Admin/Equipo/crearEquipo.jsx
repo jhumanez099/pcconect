@@ -2,8 +2,9 @@ import Axios from "axios";
 import Swal from "sweetalert2";
 import { useForm } from "react-hook-form";
 import { useState, useEffect } from "react";
+import NavBar from "../../../components/NavBar";
 
-export default function crearEquipo() {
+export default function CrearEquipo() {
   const { register, handleSubmit } = useForm();
   const [GetEquipos, setGetEquipos] = useState([]);
 
@@ -65,9 +66,7 @@ export default function crearEquipo() {
       className="vh-100 vw-100 d-flex flex-column"
       style={{ backgroundColor: "rgb(0, 138, 230)" }}
     >
-      <nav className="navbar navbar-expand-lg navbar-light bg-light w-100">
-        {/* Navbar aquí */}
-      </nav>
+      <NavBar />
 
       <div className="d-flex justify-content-center align-items-center flex-grow-1">
         <div className="col-11 col-sm-10 col-md-8 col-lg-6 col-xl-5 bg-white rounded card shadow p-4">
@@ -99,17 +98,17 @@ export default function crearEquipo() {
                 <div className="col-sm-8">
                   {field.type === "select" ? (
                     <select
-                    className="form-select"
-                    id="tipoEquipo"
-                    {...register("tipoEquipo")} // Captura el ID del select
-                  >
-                    <option value="">Seleccionar tipo de equipo</option>
-                    {GetEquipos.map((option) => (
-                      <option key={option.id_tipo_equipo} value={option.id_tipo_equipo}>
-                        {option.nombre_tipo_equipo}
-                      </option>
-                    ))}
-                  </select>
+                      className="form-select"
+                      id="tipoEquipo"
+                      {...register("tipoEquipo")} // Captura el ID del select
+                    >
+                      <option value="">Seleccionar tipo de equipo</option>
+                      {GetEquipos.map((option) => (
+                        <option key={option.id_tipo_equipo} value={option.id_tipo_equipo}>
+                          {option.nombre_tipo_equipo}
+                        </option>
+                      ))}
+                    </select>
                   ) : (
                     <input
                       type={field.type}

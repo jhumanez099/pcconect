@@ -1,29 +1,34 @@
-import React from 'react';
-export default function Navbar() {
-    return (
-      <nav className="  navbar navbar-expand-lg navbar-light bg-light fixed-top">
-        <div className="container">
-          <div className="navbar-collapse justify-content-center" id="navbarNav">
-            <ul className="navbar-nav">
-              <li className="nav-item mx-5">
-                <a className="nav-link active" href="#">Clientes</a>
-              </li>
-              <li className="nav-item mx-5">
-                <a className="nav-link" href="#">Entregas</a>
-              </li>
-              <li className="nav-item mx-5">
-                <a className="nav-link" href="#">Recogidas</a>
-              </li>
-              <li className="nav-item mx-5">
-                <a className="nav-link" href="#">Productos</a>
-              </li>
-              <li className="nav-item mx-5">
-                <a className="nav-link" href="#">Soporte</a>
-              </li>
-            </ul>
-          </div>
+
+
+export default function NavBar() {
+  return (
+    <nav className = "navbar navbar-expand-lg navbar-light bg-light w-100" >
+      <div className="container">
+        <a className="navbar-brand" href="#">PCCONECT</a>
+        <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+          <span className="navbar-toggler-icon"></span>
+        </button>
+        <div className="collapse navbar-collapse" id="navbarNav">
+          <ul className="navbar-nav ms-auto">
+            <li className="nav-item">
+              <a className="nav-link" href="/menuClientes">Clientes</a>
+            </li>
+            <li className="nav-item">
+              <a className="nav-link" href="/menuUsuarios">Usuarios</a>
+            </li>
+            <li className="nav-item">
+              <a className="nav-link" href="/menuPedidos">Pedidos</a>
+            </li>
+            <li className="nav-item">
+              <a className="nav-link" href="/menuEquipos">Equipos</a>
+            </li>
+            <li className="nav-item">
+              <a className="nav-link" href="/soporte">Soporte</a>
+            </li>
+          </ul>
         </div>
-      </nav>
-    );
-  }
-  
+      </div>
+  </nav >
+  )
+}
+
