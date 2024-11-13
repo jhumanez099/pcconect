@@ -28,9 +28,8 @@ const crearClientes = async (req, res) => {
     telefonoCliente: req.body.telefonoCliente,
     correoCliente: req.body.correoCliente,
     encargadoCliente: req.body.encargadoCliente,
-    estadoCliente: req.body.estadoCliente
+    estadoCliente: req.body.estadoCliente,
   };
-
 
   if (!validateFields(fields)) {
     return res.status(400).json({ message: ERROR_MESSAGES.REQUIRED_FIELDS });
@@ -60,26 +59,6 @@ const consultarClientes = async (req, res) => {
   }
 };
 
-const consultarUnCliente = async (req, res) => {
-  const { nombreCliente } = req.params;
-
-  if (!nombreCliente) {
-    return res.status(400).json({ message: "El nombre del cliente es requerido." });
-  }
-
-  try {
-    const cliente = await Cliente.obtenerPorNombre(nombreCliente);
-
-    if (cliente.length === 0) {
-      return res.status(404).json({ message: ERROR_MESSAGES.CLIENT_NOT_FOUND });
-    }
-
-    res.status(200).json(cliente);
-  } catch (error) {
-    handleError(res, 500, ERROR_MESSAGES.RETRIEVAL_ERROR, error);
-  }
-};
-
 const actualizarCliente = async (req, res) => {
   const idCliente = req.params.id;
   const fields = {
@@ -91,12 +70,35 @@ const actualizarCliente = async (req, res) => {
     estadoCliente: req.body.estadoCliente,
   };
 
-  // if (!validateFields(fields)) {
-  //   return res.status(400).json({ message: ERROR_MESSAGES.REQUIRED_FIELDS });
-  // }
-
   try {
-    const clienteActualizado = await Cliente.actualizar(idCliente, fields);
+    // Obtener el cliente actual desde la base de datos
+    const clienteExistente = await Cliente.obtenerPorId(idCliente);
+
+    // Si no existe el cliente, retornar error
+    if (!clienteExistente || clienteExistente.length === 0) {
+      return res.status(404).json({ message: ERROR_MESSAGES.CLIENT_NOT_FOUND });
+    }
+
+    // Filtrar solo los campos modificados
+    const camposModificados = {};
+    Object.keys(fields).forEach((key) => {
+      if (fields[key] !== clienteExistente[0][key]) {
+        camposModificados[key] = fields[key];
+      }
+    });
+
+    // Si no hay campos modificados, retornar mensaje de sin cambios
+    if (Object.keys(camposModificados).length === 0) {
+      return res
+        .status(200)
+        .json({ message: "No se realizaron cambios en el cliente." });
+    }
+
+    // Actualizar solo los campos modificados
+    const clienteActualizado = await Cliente.actualizar(
+      idCliente,
+      camposModificados
+    );
 
     if (clienteActualizado.affectedRows === 0) {
       return res.status(404).json({ message: ERROR_MESSAGES.CLIENT_NOT_FOUND });

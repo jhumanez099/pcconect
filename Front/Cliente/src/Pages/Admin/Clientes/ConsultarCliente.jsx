@@ -1,7 +1,8 @@
 import Axios from "axios";
 import Swal from "sweetalert2";
 import NavBar from "../../../components/NavBar";
-import PropTypes from 'prop-types';
+import Modal from "react-modal";
+import PropTypes from "prop-types";
 import { useEffect, useState, useMemo } from "react";
 
 function ClienteRow({ cliente, onEliminar, onEditar }) {
@@ -33,7 +34,6 @@ function ClienteRow({ cliente, onEliminar, onEditar }) {
   );
 }
 
-// Definir las PropTypes
 ClienteRow.propTypes = {
   cliente: PropTypes.shape({
     id_cliente: PropTypes.number.isRequired,
@@ -42,10 +42,10 @@ ClienteRow.propTypes = {
     telefono_cliente: PropTypes.string.isRequired,
     correo_cliente: PropTypes.string.isRequired,
     encargado_cliente: PropTypes.string.isRequired,
-    estado_cliente: PropTypes.string.isRequired
+    estado_cliente: PropTypes.string.isRequired,
   }).isRequired,
   onEliminar: PropTypes.func.isRequired,
-  onEditar: PropTypes.func.isRequired
+  onEditar: PropTypes.func.isRequired,
 };
 
 export default function ConsultarCliente() {
@@ -53,6 +53,7 @@ export default function ConsultarCliente() {
   const [consultar, setConsultar] = useState("");
   const [editingCliente, setEditingCliente] = useState(null);
   const [error, setError] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const consultarClientes = () => {
     Axios.get("http://localhost:3000/api/clientes")
@@ -102,89 +103,96 @@ export default function ConsultarCliente() {
     });
   };
 
-  const iniciarEdicion = (cliente) => {
-    // Crear una copia profunda del cliente para edición
-    setEditingCliente(JSON.parse(JSON.stringify(cliente)));
+  const handleNombreChange = (e) => {
+    const updated = {
+      ...editingCliente,
+      nombre_cliente: e.target.value,
+    };
+    setEditingCliente(updated);
   };
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setEditingCliente(prevState => {
-      // Si el valor está vacío, mantener el valor anterior
-      if (value.trim() === "") {
-        return prevState;
-      }
-      return {
-        ...prevState,
-        [name]: value
-      };
-    });
+  const handleDireccionChange = (e) => {
+    const updated = {
+      ...editingCliente,
+      direccion_cliente: e.target.value,
+    };
+    setEditingCliente(updated);
   };
 
-  const guardarCambios = async (e) => {
-    e.preventDefault();
+  const handleTelefonoChange = (e) => {
+    const updated = {
+      ...editingCliente,
+      telefono_cliente: e.target.value,
+    };
+    setEditingCliente(updated);
+  };
 
-    try {
-      // Verificar que editingCliente existe y tiene un id
-      if (!editingCliente || !editingCliente.id_cliente) {
-        throw new Error('Cliente no válido');
-      }
+  const handleCorreoChange = (e) => {
+    const updated = {
+      ...editingCliente,
+      correo_cliente: e.target.value,
+    };
+    setEditingCliente(updated);
+  };
 
-      // Obtener el cliente original para comparar
-      const clienteOriginal = clientes.find(c => c.id_cliente === editingCliente.id_cliente);
-      if (!clienteOriginal) {
-        throw new Error('Cliente no encontrado');
-      }
+  const handleEstadoChange = (e) => {
+    const updated = {
+      ...editingCliente,
+      estado_cliente: e.target.value,
+    };
+    setEditingCliente(updated);
+  };
 
-      // Crear objeto solo con los campos modificados
-      const cambios = {};
-      Object.keys(editingCliente).forEach(key => {
-        if (editingCliente[key] !== clienteOriginal[key] &&
-          editingCliente[key] !== "" &&
-          editingCliente[key] !== null) {
-          cambios[key] = editingCliente[key];
-        }
-      });
+  const handleEncargadoChange = (e) => {
+    const updated = {
+      ...editingCliente,
+      encargado_cliente: e.target.value,
+    };
+    setEditingCliente(updated);
+  };
 
-      // Si no hay cambios, cerrar el modal y no hacer nada más
-      if (Object.keys(cambios).length === 0) {
-        setEditingCliente(null);
-        return;
-      }
-
-      // Mantener el ID en los cambios
-      cambios.id_cliente = editingCliente.id_cliente;
-
-      const response = await Axios.put(
-        `http://localhost:3000/api/clientes/${editingCliente.id_cliente}`,
-        cambios
-      );
-
-      // Actualizar el estado local solo si la petición fue exitosa
-      setClientes(prevClientes =>
-        prevClientes.map(cliente =>
-          cliente.id_cliente === editingCliente.id_cliente
-            ? { ...cliente, ...cambios }
-            : cliente
-        )
-      );
-
-      Swal.fire({
-        icon: "success",
-        title: "Éxito",
-        text: "Cliente actualizado exitosamente.",
-      });
-
-      setEditingCliente(null);
-    } catch (error) {
-      console.error('Error al guardar cambios:', error);
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "Hubo un error al actualizar el cliente. Por favor, inténtelo de nuevo más tarde.",
-      });
+  //ESTAAS FUNCIONES SON PARA ABRIR Y CERRAR LA VENTANA EMERGENTE(MODAL)
+  const openModal = (cliente) => {
+    if (cliente) {
+      setEditingCliente(cliente);
+      setIsModalOpen(true);
     }
   };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+  };
+
+  const editarCliente = () => {
+    Axios.put(`http://localhost:3000/api/clientes/${editingCliente.id_cliente}`, {
+      nombreCliente: editingCliente.nombre_cliente,
+      direccionCliente: editingCliente.direccion_cliente,
+      telefonoCliente: editingCliente.telefono_cliente,
+      correoCliente: editingCliente.correo_cliente,
+      encargadoCliente: editingCliente.encargado_cliente,
+      estadoCliente: editingCliente.estado_cliente,
+    })
+      .then(() => {
+        consultarClientes();  // Llama a la función que actualiza la lista de clientes
+        Swal.fire({
+          icon: "success",
+          title: "Éxito",
+          text: "Cliente actualizado exitosamente.",
+        });
+        closeModal();  // Cierra el modal después de guardar los cambios
+      })
+      .catch((error) => {
+        console.error(error);
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "Hubo un error al actualizar el cliente. Por favor, inténtelo de nuevo más tarde.",
+        });
+      });
+  };
+
+
+
 
   const resultadoFiltrado = useMemo(() => {
     return consultar
@@ -232,7 +240,7 @@ export default function ConsultarCliente() {
                 <th>Nombre</th>
                 <th>Dirección</th>
                 <th>Teléfono</th>
-                <th>Correo</th>
+                <th>Correo Electrónico</th>
                 <th>Responsable</th>
                 <th>Estado</th>
                 <th>Opciones</th>
@@ -245,7 +253,7 @@ export default function ConsultarCliente() {
                     key={cliente.id_cliente}
                     cliente={cliente}
                     onEliminar={eliminarCliente}
-                    onEditar={iniciarEdicion}
+                    onEditar={openModal}
                   />
                 ))
               ) : (
@@ -258,88 +266,114 @@ export default function ConsultarCliente() {
         </div>
       </div>
 
-      {editingCliente && (
-        <div className="modal show d-block">
-          <div className="modal-dialog">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">Editar Cliente</h5>
-                <button
-                  className="btn-close"
-                  onClick={() => setEditingCliente(null)}
-                ></button>
+      <Modal
+        isOpen={isModalOpen}
+        onRequestClose={closeModal}
+        contentLabel="Editar Cliente"
+        className="custom-modal modal-dialog modal-dialog-scrollable modal-dialog-centered"
+        overlayClassName="custom-overlay modal-backdrop"
+        ariaHideApp={false}
+      >
+        <div className="modal-content">
+          <div className="modal-header">
+            <h5 className="modal-title">Editar Cliente</h5>
+            <button
+              type="button"
+              className="btn-close"
+              onClick={closeModal}
+              aria-label="Cerrar"
+            ></button>
+          </div>
+          <div className="modal-body">
+            <form>
+              {/* Formulario de cliente */}
+              <div className="mb-3">
+                <label htmlFor="nombreCliente" className="form-label">
+                  Nombre:
+                </label>
+                <input
+                  type="text"
+                  className="form-control"
+                  id="nombreCliente"
+                  value={editingCliente?.nombre_cliente || ""}
+                  onChange={handleNombreChange}
+                />
               </div>
-              <div className="modal-body">
-                <form onSubmit={guardarCambios}>
-                  <div className="mb-3">
-                    <label className="form-label">Nombre</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      name="nombre_cliente"
-                      value={editingCliente?.nombre_cliente || ""}
-                      onChange={handleInputChange}
-                    />
-                  </div>
-                  <div className="mb-3">
-                    <label className="form-label">Dirección</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      name="direccion_cliente"
-                      value={editingCliente?.direccion_cliente || ""}
-                      onChange={handleInputChange}
-                    />
-                  </div>
-                  <div className="mb-3">
-                    <label className="form-label">Teléfono</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      name="telefono_cliente"
-                      value={editingCliente?.telefono_cliente || ""}
-                      onChange={handleInputChange}
-                    />
-                  </div>
-                  <div className="mb-3">
-                    <label className="form-label">Correo</label>
-                    <input
-                      type="email"
-                      className="form-control"
-                      name="correo_cliente"
-                      value={editingCliente?.correo_cliente || ""}
-                      onChange={handleInputChange}
-                    />
-                  </div>
-                  <div className="mb-3">
-                    <label className="form-label">Encargado</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      name="encargado_cliente"
-                      value={editingCliente?.encargado_cliente || ""}
-                      onChange={handleInputChange}
-                    />
-                  </div>
-                  <div className="mb-3">
-                    <label className="form-label">Estado</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      name="estado_cliente"
-                      value={editingCliente?.estado_cliente || ""}
-                      onChange={handleInputChange}
-                    />
-                  </div>
-                  <button type="submit" className="btn btn-primary">
-                    Guardar cambios
-                  </button>
-                </form>
+              <div className="mb-3">
+                <label htmlFor="direccionCliente" className="form-label">
+                  Dirección:
+                </label>
+                <input
+                  type="text"
+                  className="form-control"
+                  id="direccionCliente"
+                  value={editingCliente?.direccion_cliente || ""}
+                  onChange={handleDireccionChange}
+                />
               </div>
-            </div>
+              <div className="mb-3">
+                <label htmlFor="telefonoCliente" className="form-label">
+                  Teléfono:
+                </label>
+                <input
+                  type="text"
+                  className="form-control"
+                  id="telefonoCliente"
+                  value={editingCliente?.telefono_cliente || ""}
+                  onChange={handleTelefonoChange}
+                />
+              </div>
+              <div className="mb-3">
+                <label htmlFor="correoCliente" className="form-label">
+                  Correo Electrónico:
+                </label>
+                <input
+                  type="email"
+                  className="form-control"
+                  id="correoCliente"
+                  value={editingCliente?.correo_cliente || ""}
+                  onChange={handleCorreoChange}
+                />
+              </div>
+              <div className="mb-3">
+                <label htmlFor="encargadoCliente" className="form-label">
+                  Responsable:
+                </label>
+                <input
+                  type="text"
+                  className="form-control"
+                  id="encargadoCliente"
+                  value={editingCliente?.encargado_cliente || ""}
+                  onChange={handleEncargadoChange}
+                />
+              </div>
+              <div className="mb-3">
+                <label htmlFor="estadoCliente" className="form-label">
+                  Estado:
+                </label>
+                <select
+                  className="form-select"
+                  id="estadoCliente"
+                  value={editingCliente?.estado_cliente || ""}
+                  onChange={handleEstadoChange}
+                >
+                  <option value="Activo">Activo</option>
+                  <option value="Inactivo">Inactivo</option>
+                </select>
+              </div>
+            </form>
+          </div>
+          <div className="modal-footer d-flex justify-content-center">
+            <button
+              type="button"
+              className="btn btn-success "
+              onClick={editarCliente}
+            >
+              Guardar Cambios
+            </button>
           </div>
         </div>
-      )}
+      </Modal>
     </div>
   );
 }

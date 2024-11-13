@@ -19,11 +19,11 @@ const Cliente = {
     return clientes;
   },
 
-  // Consultar un cliente por nombre
-  async obtenerPorNombre(nombre) {
+  // Consultar un cliente por ID
+  async obtenerPorId(id) {
     const [cliente] = await pool.query(
-      "SELECT * FROM clientes WHERE nombre_cliente = ? LIMIT 1",
-      [nombre]
+      "SELECT * FROM clientes WHERE id_cliente = ? LIMIT 1",
+      [id]
     );
     return cliente;
   },
@@ -34,7 +34,7 @@ const Cliente = {
       UPDATE 
         clientes 
       SET 
-        nombre_cliente = ?, direccion_cliente = ?, telefono_cliente = ?, correo_cliente = ?, estado_cliente = ?, encargado_cliente = ?
+        nombre_cliente = ?, direccion_cliente = ?, telefono_cliente = ?, correo_cliente = ?, encargado_cliente = ?, estado_cliente = ?
       WHERE 
         id_cliente = ?
     `;

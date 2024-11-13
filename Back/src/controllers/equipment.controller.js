@@ -21,7 +21,7 @@ const validateFields = (fields) => {
 };
 
 const crearEquipo = async (req, res) => {
-  console.log(req.body.fechaCompraEquipo)
+  console.log(req.body.fechaCompraEquipo);
   const {
     nombreTipoEquipo,
     modeloEquipo,
@@ -64,28 +64,6 @@ const consultarEquipo = async (req, res) => {
   }
 };
 
-const consultarUnEquipo = async (req, res) => {
-  const { modeloEquipo } = req.params;
-
-  if (!modeloEquipo) {
-    return res.status(400).json({ message: "El modelo del equipo es requerido." });
-  }
-
-  try {
-    const equipo = await Equipo.obtenerPorModelo(modeloEquipo);
-
-    if (equipo.length === 0) {
-      return res
-        .status(404)
-        .json({ message: ERROR_MESSAGES.EQUIPMENT_NOT_FOUND });
-    }
-
-    res.status(200).json(equipo);
-  } catch (error) {
-    handleError(res, 500, ERROR_MESSAGES.RETRIEVAL_ERROR, error);
-  }
-};
-
 const actualizarEquipo = async (req, res) => {
   const idEquipo = req.params.id;
   const {
@@ -104,12 +82,37 @@ const actualizarEquipo = async (req, res) => {
     fechaCompraEquipo,
   };
 
-  if (!validateFields(fields)) {
-    return res.status(400).json({ message: ERROR_MESSAGES.REQUIRED_FIELDS });
-  }
-
   try {
-    const equipoActualizado = await Equipo.actualizar(idEquipo, fields);
+    // Obtener el equipo actual desde la base de datos
+    const equipoExistente = await Equipo.obtenerPorId(idEquipo);
+
+    // Si no existe el equipo, retornar error
+    if (!equipoExistente || equipoExistente.length === 0) {
+      return res
+        .status(404)
+        .json({ message: ERROR_MESSAGES.EQUIPMENT_NOT_FOUND });
+    }
+
+    // Filtrar solo los campos modificados
+    const camposModificados = {};
+    Object.keys(fields).forEach((key) => {
+      if (fields[key] !== equipoExistente[0][key]) {
+        camposModificados[key] = fields[key];
+      }
+    });
+
+    // Si no hay campos modificados, retornar mensaje de sin cambios
+    if (Object.keys(camposModificados).length === 0) {
+      return res
+        .status(200)
+        .json({ message: "No se realizaron cambios en el equipo." });
+    }
+
+    // Actualizar solo los campos modificados
+    const equipoActualizado = await Equipo.actualizar(
+      idEquipo,
+      camposModificados
+    );
 
     if (equipoActualizado.affectedRows === 0) {
       return res
