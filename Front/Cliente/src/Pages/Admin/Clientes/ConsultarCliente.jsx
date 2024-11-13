@@ -207,7 +207,7 @@ export default function ConsultarCliente() {
   }, []);
 
   return (
-    <div className="vh-100 vw-100 d-flex flex-column page-background">
+    <div className="min-vh-100 d-flex flex-column bg-secondary">
       <NavBar />
       <div className="d-flex justify-content-center align-items-center flex-grow-1 px-3">
         <div className="col-12 col-sm-10 col-md-8 col-lg-6 col-xl-5 bg-white rounded card shadow p-4 m-4">
