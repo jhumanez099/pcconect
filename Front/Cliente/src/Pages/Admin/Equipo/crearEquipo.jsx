@@ -3,7 +3,7 @@ import Swal from "sweetalert2";
 import { useForm } from "react-hook-form";
 import { useState, useEffect } from "react";
 
-export default function crearEquipo() {
+export default function CrearEquipo() {
   const { register, handleSubmit } = useForm();
   const [GetEquipos, setGetEquipos] = useState([]);
 

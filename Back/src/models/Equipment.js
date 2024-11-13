@@ -51,10 +51,20 @@ const Equipo = {
       UPDATE 
         equipos 
       SET 
-        id_tipo_equipo = ?, modelo_equipo = ?, marca_equipo = ?, especificaciones_equipo = ?, estado_equipo = ?, fecha_compra_equipo = ?
+        id_tipo_equipo = ?, 
+        modelo_equipo = ?, 
+        marca_equipo = ?, 
+        especificaciones_equipo = ?, 
+        estado_equipo = ?, 
+        fecha_compra_equipo = ?
       WHERE 
         id_equipo = ?
     `;
+  
+    // Verifica los valores finales que se usarán en la consulta SQL
+    console.log('Query a ejecutar:', query);
+    console.log('Valores para la query:', [...Object.values(fields), id]);
+  
     const [result] = await pool.query(query, [...Object.values(fields), id]);
     return result;
   },
