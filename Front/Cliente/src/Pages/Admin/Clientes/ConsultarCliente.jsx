@@ -4,7 +4,6 @@ import NavBar from "../../../components/NavBar";
 import Modal from "react-modal";
 import PropTypes from "prop-types";
 import { useEffect, useState, useMemo } from "react";
-import './Cliente.css'
 
 function ClienteRow({ cliente, onEliminar, onEditar }) {
   return (
