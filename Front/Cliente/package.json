@@ -17,6 +17,7 @@
     "react-dom": "^18.2.0",
     "react-hook-form": "^7.53.1",
     "reactstrap": "^9.2.3",
+    "swal": "^0.1.0",
     "sweetalert2": "^11.14.5"
   },
   "devDependencies": {

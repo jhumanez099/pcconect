@@ -23,7 +23,7 @@ export default function tipoUsuarios() {
             })
             .catch((error) => {
                 console.log("Error al crear el tipo de usuario:", error);
-            });
+            })
     };
 
     return (
