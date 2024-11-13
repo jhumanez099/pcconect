@@ -58,42 +58,43 @@ const consultarTipoEquipo = async (req, res) => {
   }
 };
 
-const consultarUnTipoEquipo = async (req, res) => {
-  const { nombreTipoEquipo } = req.params;
-
-  if (!nombreTipoEquipo) {
-    return res
-      .status(400)
-      .json({ message: "El nombre del tipo de equipo es requerido." });
-  }
+const actualizarTipoEquipo = async (req, res) => {
+  const idTipoEquipo = req.params.id;
+  const { nombreTipoEquipo } = req.body;
 
   try {
-    const tipoEquipo = await TipoEquipo.obtenerPorNombre(nombreTipoEquipo);
+    // Obtener el tipo equipo actual desde la base de datos
+    const tipoEquipoExistente = await TipoEquipo.obtenerPorId(idTipoEquipo);
 
-    if (tipoEquipo.length === 0) {
+    // Si no existe el tipo equipo, retornar error
+    if (!tipoEquipoExistente || tipoEquipoExistente.length === 0) {
       return res
         .status(404)
         .json({ message: ERROR_MESSAGES.EQUIPMENT_TYPE_NOT_FOUND });
     }
 
-    res.status(200).json(tipoEquipo[0]);
-  } catch (error) {
-    handleError(res, 500, ERROR_MESSAGES.RETRIEVAL_ERROR, error);
-  }
-};
+    // Filtrar solo los campos modificados
+    const camposModificados = {};
 
-const actualizarTipoEquipo = async (req, res) => {
-  const idTipoEquipo = req.params.id;
-  const { nombreTipoEquipo } = req.body;
+    // Comprobar si el nombre del tipo equipo ha cambiado
+    if (
+      nombreTipoEquipo &&
+      nombreTipoEquipo !== tipoEquipoExistente[0].nombreTipoEquipo
+    ) {
+      camposModificados.nombreTipoEquipo = nombreTipoEquipo; // Solo agregar los campos que cambian
+    }
 
-  if (!validateFields({ nombreTipoEquipo })) {
-    return res.status(400).json({ message: ERROR_MESSAGES.REQUIRED_FIELDS });
-  }
+    // Si no hay campos modificados, retornar mensaje de sin cambios
+    if (Object.keys(camposModificados).length === 0) {
+      return res
+        .status(200)
+        .json({ message: "No se realizaron cambios en el tipo de equipo." });
+    }
 
-  try {
+    // Actualizar solo los campos modificados
     const tipoEquipoActualizado = await TipoEquipo.actualizar(
       idTipoEquipo,
-      nombreTipoEquipo
+      camposModificados
     );
 
     if (tipoEquipoActualizado.affectedRows === 0) {
@@ -102,11 +103,12 @@ const actualizarTipoEquipo = async (req, res) => {
         .json({ message: ERROR_MESSAGES.EQUIPMENT_TYPE_NOT_FOUND });
     }
 
-    res.status(200).json({ message: "Tipo de equipo actualizado con éxito." });
+    res.status(200).json({ message: "Tipo del equipo actualizado con éxito." });
   } catch (error) {
     handleError(res, 500, ERROR_MESSAGES.UPDATE_ERROR, error);
   }
 };
+
 
 const eliminarTipoEquipo = async (req, res) => {
   const idTipoEquipo = req.params.id;

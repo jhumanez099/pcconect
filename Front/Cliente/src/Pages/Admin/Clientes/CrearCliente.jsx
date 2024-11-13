@@ -49,7 +49,7 @@ export default function CrearCliente() {
                             { label: "Dirección", id: "direccionCliente", type: "text" },
                             { label: "Teléfono", id: "telefonoCliente", type: "text" },
                             { label: "Correo", id: "correoCliente", type: "email" },
-                            { label: "Encargado", id: "encargadoCliente", type: "text" },
+                            { label: "Responsable", id: "encargadoCliente", type: "text" },
                             { label: "Estado", id: "estadoCliente", type: "select", options: ["Activo", "Inactivo"] },
                         ].map((field, index) => (
                             <div className="mb-4 row align-items-center" key={index}>

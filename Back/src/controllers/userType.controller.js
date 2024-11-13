@@ -51,42 +51,43 @@ const consultarTipoUsuario = async (req, res) => {
   }
 };
 
-const consultarUnTipoUsuario = async (req, res) => {
-  const { nombreTipoUsuario } = req.params;
-
-  if (!validateField(nombreTipoUsuario)) {
-    return res
-      .status(400)
-      .json({ message: "El nombre del tipo de usuario es requerido." });
-  }
+const actualizarTipoUsuario = async (req, res) => {
+  const idTipoUsuario = req.params.id;
+  const { nombreTipoUsuario } = req.body;
 
   try {
-    const tipoUsuario = await TipoUsuario.obtenerPorNombre(nombreTipoUsuario);
+    // Obtener el tipo usuario actual desde la base de datos
+    const tipoUsuarioExistente = await TipoUsuario.obtenerPorId(idTipoUsuario);
 
-    if (tipoUsuario.length === 0) {
+    // Si no existe el tipo usuario, retornar error
+    if (!tipoUsuarioExistente || tipoUsuarioExistente.length === 0) {
       return res
         .status(404)
         .json({ message: ERROR_MESSAGES.USER_TYPE_NOT_FOUND });
     }
 
-    res.status(200).json(tipoUsuario[0]);
-  } catch (error) {
-    handleError(res, 500, ERROR_MESSAGES.RETRIEVAL_ERROR, error);
-  }
-};
+    // Filtrar solo los campos modificados
+    const camposModificados = {};
 
-const actualizarTipoUsuario = async (req, res) => {
-  const idTipoUsuario = req.params.id;
-  const { nombreTipoUsuario } = req.body;
+    // Comprobar si el nombre del tipo usuario ha cambiado
+    if (
+      nombreTipoUsuario &&
+      nombreTipoUsuario !== nombreTipoUsuario[0].nombreTipoUsuario
+    ) {
+      camposModificados.nombreTipoUsuario = nombreTipoUsuario; // Solo agregar los campos que cambian
+    }
 
-  if (!validateField(nombreTipoUsuario)) {
-    return res.status(400).json({ message: ERROR_MESSAGES.REQUIRED_FIELDS });
-  }
+    // Si no hay campos modificados, retornar mensaje de sin cambios
+    if (Object.keys(camposModificados).length === 0) {
+      return res
+        .status(200)
+        .json({ message: "No se realizaron cambios en el tipo de usuario." });
+    }
 
-  try {
+    // Actualizar solo los campos modificados
     const tipoUsuarioActualizado = await TipoUsuario.actualizar(
       idTipoUsuario,
-      nombreTipoUsuario
+      camposModificados
     );
 
     if (tipoUsuarioActualizado.affectedRows === 0) {
@@ -95,7 +96,7 @@ const actualizarTipoUsuario = async (req, res) => {
         .json({ message: ERROR_MESSAGES.USER_TYPE_NOT_FOUND });
     }
 
-    res.status(200).json({ message: "Tipo de usuario actualizado con éxito." });
+    res.status(200).json({ message: "Tipo del usuario actualizado con éxito." });
   } catch (error) {
     handleError(res, 500, ERROR_MESSAGES.UPDATE_ERROR, error);
   }

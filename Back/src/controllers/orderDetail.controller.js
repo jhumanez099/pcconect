@@ -75,30 +75,6 @@ const consultarDetallesPedidos = async (req, res) => {
   }
 };
 
-const consultarUnDetallePedido = async (req, res) => {
-  const { idDetallePedido } = req.params;
-
-  if (!idDetallePedido) {
-    return res
-      .status(400)
-      .json({ message: "El ID del detalle del pedido es requerido." });
-  }
-
-  try {
-    const detallePedido = await DetallePedido.obtenerPorId(idDetallePedido);
-
-    if (detallePedido.length === 0) {
-      return res
-        .status(404)
-        .json({ message: ERROR_MESSAGES.ORDER_DETAIL_NOT_FOUND });
-    }
-
-    res.status(200).json(detallePedido[0]);
-  } catch (error) {
-    handleError(res, 500, ERROR_MESSAGES.RETRIEVAL_ERROR, error);
-  }
-};
-
 const actualizarDetallePedido = async (req, res) => {
   const idDetallePedido = req.params.id;
   const {
@@ -112,33 +88,46 @@ const actualizarDetallePedido = async (req, res) => {
   const subtotalDetallePedido =
     cantidadDetallePedido * precioUnitarioDetallePedido;
 
-  if (
-    !validateFields([
-      pedido,
-      equipo,
-      cantidadDetallePedido,
-      precioUnitarioDetallePedido,
-      fechaInicioDetallePedido,
-      fechaFinDetallePedido,
-    ])
-  ) {
-    return res.status(400).json({ message: ERROR_MESSAGES.REQUIRED_FIELDS });
-  }
+  const fields = {
+    pedido,
+    equipo,
+    cantidadDetallePedido,
+    precioUnitarioDetallePedido,
+    subtotalDetallePedido,
+    fechaInicioDetallePedido,
+    fechaFinDetallePedido,
+  };
 
   try {
-    const fields = {
-      pedido,
-      equipo,
-      cantidadDetallePedido,
-      precioUnitarioDetallePedido,
-      subtotalDetallePedido,
-      fechaInicioDetallePedido,
-      fechaFinDetallePedido,
-    };
+    // Obtener el detalle del pedido actual desde la base de datos
+    const detallePedidoExistente = await DetallePedido.obtenerPorId(idDetallePedido);
 
+    // Si no existe el detalle del pedido, retornar error
+    if (!detallePedidoExistente || detallePedidoExistente.length === 0) {
+      return res
+        .status(404)
+        .json({ message: ERROR_MESSAGES.ORDER_DETAIL_NOT_FOUND });
+    }
+
+    // Filtrar solo los campos modificados
+    const camposModificados = {};
+    Object.keys(fields).forEach((key) => {
+      if (fields[key] !== detallePedidoExistente[0][key]) {
+        camposModificados[key] = fields[key];
+      }
+    });
+
+    // Si no hay campos modificados, retornar mensaje de sin cambios
+    if (Object.keys(camposModificados).length === 0) {
+      return res
+        .status(200)
+        .json({ message: "No se realizaron cambios en el detalle del pedido." });
+    }
+
+    // Actualizar solo los campos modificados
     const detallePedidoActualizado = await DetallePedido.actualizar(
       idDetallePedido,
-      fields
+      camposModificados
     );
 
     if (detallePedidoActualizado.affectedRows === 0) {
@@ -147,9 +136,7 @@ const actualizarDetallePedido = async (req, res) => {
         .json({ message: ERROR_MESSAGES.ORDER_DETAIL_NOT_FOUND });
     }
 
-    res
-      .status(200)
-      .json({ message: "Detalle del pedido actualizado con éxito." });
+    res.status(200).json({ message: "Detalle del pedido actualizado con éxito." });
   } catch (error) {
     handleError(res, 500, ERROR_MESSAGES.UPDATE_ERROR, error);
   }

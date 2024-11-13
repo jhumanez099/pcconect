@@ -96,23 +96,42 @@ const actualizarUsuario = async (req, res) => {
     estadoUsuario: req.body.estadoUsuario,
   };
 
-  if (!validateFields(fields)) {
-    return res.status(400).json({ message: ERROR_MESSAGES.REQUIRED_FIELDS });
-  }
-
   try {
+    // Obtener el usuario actual desde la base de datos
+    const usuarioExistente = await Usuario.obtenerPorId(idUsuario);
 
-    const contraseñaEncriptada = await bcrypt.hash(
-      fields.contraseñaUsuario,
-      10
+    // Si no existe el usuario, retornar error
+    if (!usuarioExistente || usuarioExistente.length === 0) {
+      return res
+        .status(404)
+        .json({ message: ERROR_MESSAGES.USER_NOT_FOUND });
+    }
+
+    // Filtrar solo los campos modificados
+    const camposModificados = {};
+    Object.keys(fields).forEach((key) => {
+      if (fields[key] !== usuarioExistente[0][key]) {
+        camposModificados[key] = fields[key];
+      }
+    });
+
+    // Si no hay campos modificados, retornar mensaje de sin cambios
+    if (Object.keys(camposModificados).length === 0) {
+      return res
+        .status(200)
+        .json({ message: "No se realizaron cambios en el usuario." });
+    }
+
+    // Actualizar solo los campos modificados
+    const usuarioActualizado = await Usuario.actualizar(
+      idUsuario,
+      camposModificados
     );
 
-    fields.contraseñaUsuario = contraseñaEncriptada;
-
-    const usuarioActualizado = await Usuario.actualizar(idUsuario, fields);
-
     if (usuarioActualizado.affectedRows === 0) {
-      return res.status(404).json({ message: ERROR_MESSAGES.USER_NOT_FOUND });
+      return res
+        .status(404)
+        .json({ message: ERROR_MESSAGES.USER_NOT_FOUND });
     }
 
     res.status(200).json({ message: "Usuario actualizado con éxito." });

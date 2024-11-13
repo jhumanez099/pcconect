@@ -53,42 +53,43 @@ const consultarTipoPedido = async (req, res) => {
   }
 };
 
-const consultarUnTipoPedido = async (req, res) => {
-  const { nombreTipoPedido } = req.params;
-
-  if (!nombreTipoPedido) {
-    return res
-      .status(400)
-      .json({ message: "El nombre del tipo de pedido es requerido." });
-  }
+const actualizarTipoPedido = async (req, res) => {
+  const idTipoPedido = req.params.id;
+  const { nombreTipoPedido } = req.body;
 
   try {
-    const tipoPedido = await TipoPedido.obtenerPorNombre(nombreTipoPedido);
+    // Obtener el tipo pedido actual desde la base de datos
+    const tipoPedidoExistente = await TipoPedido.obtenerPorId(idTipoPedido);
 
-    if (tipoPedido.length === 0) {
+    // Si no existe el tipo pedido, retornar error
+    if (!tipoPedidoExistente || tipoPedidoExistente.length === 0) {
       return res
         .status(404)
         .json({ message: ERROR_MESSAGES.ORDER_TYPE_NOT_FOUND });
     }
 
-    res.status(200).json(tipoPedido[0]);
-  } catch (error) {
-    handleError(res, 500, ERROR_MESSAGES.RETRIEVAL_ERROR, error);
-  }
-};
+    // Filtrar solo los campos modificados
+    const camposModificados = {};
 
-const actualizarTipoPedido = async (req, res) => {
-  const idTipoPedido = req.params.id;
-  const { nombreTipoPedido } = req.body;
+    // Comprobar si el nombre del tipo pedido ha cambiado
+    if (
+      nombreTipoPedido &&
+      nombreTipoPedido !== tipoEquipoActualizado[0].nombreTipoPedido
+    ) {
+      camposModificados.nombreTipoPedido = nombreTipoPedido; // Solo agregar los campos que cambian
+    }
 
-  if (!validateFields({ nombreTipoPedido })) {
-    return res.status(400).json({ message: ERROR_MESSAGES.REQUIRED_FIELDS });
-  }
+    // Si no hay campos modificados, retornar mensaje de sin cambios
+    if (Object.keys(camposModificados).length === 0) {
+      return res
+        .status(200)
+        .json({ message: "No se realizaron cambios en el tipo de pedido." });
+    }
 
-  try {
+    // Actualizar solo los campos modificados
     const tipoPedidoActualizado = await TipoPedido.actualizar(
       idTipoPedido,
-      nombreTipoPedido
+      camposModificados
     );
 
     if (tipoPedidoActualizado.affectedRows === 0) {
@@ -97,7 +98,7 @@ const actualizarTipoPedido = async (req, res) => {
         .json({ message: ERROR_MESSAGES.ORDER_TYPE_NOT_FOUND });
     }
 
-    res.status(200).json({ message: "Tipo de pedido actualizado con éxito." });
+    res.status(200).json({ message: "Tipo del pedido actualizado con éxito." });
   } catch (error) {
     handleError(res, 500, ERROR_MESSAGES.UPDATE_ERROR, error);
   }

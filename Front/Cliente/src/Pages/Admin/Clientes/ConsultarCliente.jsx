@@ -1,9 +1,11 @@
 import Axios from "axios";
 import Swal from "sweetalert2";
 import NavBar from "../../../components/NavBar";
+import Modal from "react-modal";
+import PropTypes from "prop-types";
 import { useEffect, useState, useMemo } from "react";
 
-function ClienteRow({ cliente, onEliminar }) {
+function ClienteRow({ cliente, onEliminar, onEditar }) {
   return (
     <tr>
       <td className="text-truncate">{cliente.nombre_cliente}</td>
@@ -14,7 +16,12 @@ function ClienteRow({ cliente, onEliminar }) {
       <td>{cliente.estado_cliente}</td>
       <td>
         <div className="d-flex flex-column align-items-center">
-          <button className="btn btn-primary btn-sm mb-2 w-100">Editar</button>
+          <button
+            className="btn btn-primary btn-sm mb-2 w-100"
+            onClick={() => onEditar(cliente)}
+          >
+            Editar
+          </button>
           <button
             className="btn btn-danger btn-sm w-100"
             onClick={() => onEliminar(cliente.id_cliente)}
@@ -27,10 +34,26 @@ function ClienteRow({ cliente, onEliminar }) {
   );
 }
 
+ClienteRow.propTypes = {
+  cliente: PropTypes.shape({
+    id_cliente: PropTypes.number.isRequired,
+    nombre_cliente: PropTypes.string.isRequired,
+    direccion_cliente: PropTypes.string.isRequired,
+    telefono_cliente: PropTypes.string.isRequired,
+    correo_cliente: PropTypes.string.isRequired,
+    encargado_cliente: PropTypes.string.isRequired,
+    estado_cliente: PropTypes.string.isRequired,
+  }).isRequired,
+  onEliminar: PropTypes.func.isRequired,
+  onEditar: PropTypes.func.isRequired,
+};
+
 export default function ConsultarCliente() {
   const [clientes, setClientes] = useState([]);
   const [consultar, setConsultar] = useState("");
+  const [editingCliente, setEditingCliente] = useState(null);
   const [error, setError] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const consultarClientes = () => {
     Axios.get("http://localhost:3000/api/clientes")
@@ -40,7 +63,9 @@ export default function ConsultarCliente() {
       })
       .catch((error) => {
         console.error("Error en la consulta de clientes:", error);
-        setError("Hubo un error al cargar los clientes. Por favor, intenta nuevamente.");
+        setError(
+          "Hubo un error al cargar los clientes. Por favor, intenta nuevamente."
+        );
       });
   };
 
@@ -78,9 +103,96 @@ export default function ConsultarCliente() {
     });
   };
 
-  const buscar = (e) => {
-    setConsultar(e.target.value);
+  const handleNombreChange = (e) => {
+    const updated = {
+      ...editingCliente,
+      nombre_cliente: e.target.value,
+    };
+    setEditingCliente(updated);
   };
+
+  const handleDireccionChange = (e) => {
+    const updated = {
+      ...editingCliente,
+      direccion_cliente: e.target.value,
+    };
+    setEditingCliente(updated);
+  };
+
+  const handleTelefonoChange = (e) => {
+    const updated = {
+      ...editingCliente,
+      telefono_cliente: e.target.value,
+    };
+    setEditingCliente(updated);
+  };
+
+  const handleCorreoChange = (e) => {
+    const updated = {
+      ...editingCliente,
+      correo_cliente: e.target.value,
+    };
+    setEditingCliente(updated);
+  };
+
+  const handleEstadoChange = (e) => {
+    const updated = {
+      ...editingCliente,
+      estado_cliente: e.target.value,
+    };
+    setEditingCliente(updated);
+  };
+
+  const handleEncargadoChange = (e) => {
+    const updated = {
+      ...editingCliente,
+      encargado_cliente: e.target.value,
+    };
+    setEditingCliente(updated);
+  };
+
+  //ESTAAS FUNCIONES SON PARA ABRIR Y CERRAR LA VENTANA EMERGENTE(MODAL)
+  const openModal = (cliente) => {
+    if (cliente) {
+      setEditingCliente(cliente);
+      setIsModalOpen(true);
+    }
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+  };
+
+  const editarCliente = () => {
+    Axios.put(`http://localhost:3000/api/clientes/${editingCliente.id_cliente}`, {
+      nombreCliente: editingCliente.nombre_cliente,
+      direccionCliente: editingCliente.direccion_cliente,
+      telefonoCliente: editingCliente.telefono_cliente,
+      correoCliente: editingCliente.correo_cliente,
+      encargadoCliente: editingCliente.encargado_cliente,
+      estadoCliente: editingCliente.estado_cliente,
+    })
+      .then(() => {
+        consultarClientes();  // Llama a la función que actualiza la lista de clientes
+        Swal.fire({
+          icon: "success",
+          title: "Éxito",
+          text: "Cliente actualizado exitosamente.",
+        });
+        closeModal();  // Cierra el modal después de guardar los cambios
+      })
+      .catch((error) => {
+        console.error(error);
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "Hubo un error al actualizar el cliente. Por favor, inténtelo de nuevo más tarde.",
+        });
+      });
+  };
+
+
+
 
   const resultadoFiltrado = useMemo(() => {
     return consultar
@@ -106,10 +218,12 @@ export default function ConsultarCliente() {
             </div>
           </div>
           <div className="text-center d-flex justify-content-center input-group mb-1">
-            <span className="input-group-text" id="icon-input">🔍︎</span>
+            <span className="input-group-text" id="icon-input">
+              🔍︎
+            </span>
             <input
               value={consultar}
-              onChange={buscar}
+              onChange={(e) => setConsultar(e.target.value)}
               type="text"
               placeholder="Consulta los clientes"
               className="form-control"
@@ -126,8 +240,8 @@ export default function ConsultarCliente() {
                 <th>Nombre</th>
                 <th>Dirección</th>
                 <th>Teléfono</th>
-                <th>Correo</th>
-                <th>Encargado</th>
+                <th>Correo Electrónico</th>
+                <th>Responsable</th>
                 <th>Estado</th>
                 <th>Opciones</th>
               </tr>
@@ -139,6 +253,7 @@ export default function ConsultarCliente() {
                     key={cliente.id_cliente}
                     cliente={cliente}
                     onEliminar={eliminarCliente}
+                    onEditar={openModal}
                   />
                 ))
               ) : (
@@ -150,6 +265,115 @@ export default function ConsultarCliente() {
           </table>
         </div>
       </div>
+
+      <Modal
+        isOpen={isModalOpen}
+        onRequestClose={closeModal}
+        contentLabel="Editar Cliente"
+        className="custom-modal modal-dialog modal-dialog-scrollable modal-dialog-centered"
+        overlayClassName="custom-overlay modal-backdrop"
+        ariaHideApp={false}
+      >
+        <div className="modal-content">
+          <div className="modal-header">
+            <h5 className="modal-title">Editar Cliente</h5>
+            <button
+              type="button"
+              className="btn-close"
+              onClick={closeModal}
+              aria-label="Cerrar"
+            ></button>
+          </div>
+          <div className="modal-body">
+            <form>
+              {/* Formulario de cliente */}
+              <div className="mb-3">
+                <label htmlFor="nombreCliente" className="form-label">
+                  Nombre:
+                </label>
+                <input
+                  type="text"
+                  className="form-control"
+                  id="nombreCliente"
+                  value={editingCliente?.nombre_cliente || ""}
+                  onChange={handleNombreChange}
+                />
+              </div>
+              <div className="mb-3">
+                <label htmlFor="direccionCliente" className="form-label">
+                  Dirección:
+                </label>
+                <input
+                  type="text"
+                  className="form-control"
+                  id="direccionCliente"
+                  value={editingCliente?.direccion_cliente || ""}
+                  onChange={handleDireccionChange}
+                />
+              </div>
+              <div className="mb-3">
+                <label htmlFor="telefonoCliente" className="form-label">
+                  Teléfono:
+                </label>
+                <input
+                  type="text"
+                  className="form-control"
+                  id="telefonoCliente"
+                  value={editingCliente?.telefono_cliente || ""}
+                  onChange={handleTelefonoChange}
+                />
+              </div>
+              <div className="mb-3">
+                <label htmlFor="correoCliente" className="form-label">
+                  Correo Electrónico:
+                </label>
+                <input
+                  type="email"
+                  className="form-control"
+                  id="correoCliente"
+                  value={editingCliente?.correo_cliente || ""}
+                  onChange={handleCorreoChange}
+                />
+              </div>
+              <div className="mb-3">
+                <label htmlFor="encargadoCliente" className="form-label">
+                  Responsable:
+                </label>
+                <input
+                  type="text"
+                  className="form-control"
+                  id="encargadoCliente"
+                  value={editingCliente?.encargado_cliente || ""}
+                  onChange={handleEncargadoChange}
+                />
+              </div>
+              <div className="mb-3">
+                <label htmlFor="estadoCliente" className="form-label">
+                  Estado:
+                </label>
+                <select
+                  className="form-select"
+                  id="estadoCliente"
+                  value={editingCliente?.estado_cliente || ""}
+                  onChange={handleEstadoChange}
+                >
+                  <option value="Activo">Activo</option>
+                  <option value="Inactivo">Inactivo</option>
+                </select>
+              </div>
+            </form>
+          </div>
+          <div className="modal-footer d-flex justify-content-center">
+            <button
+              type="button"
+              className="btn btn-success "
+              onClick={editarCliente}
+            >
+              Guardar Cambios
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }
