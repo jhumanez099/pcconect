@@ -1,3 +1,4 @@
+import './App.css'
 import { BrowserRouter, Routes, Route } from "react-router-dom"
 import Login from './Pages/Login.jsx'
 import CrearCliente from './Pages/Admin/Clientes/CrearCliente.jsx'
@@ -6,7 +7,6 @@ import CrearTipoEquipo from './Pages/Admin/Equipo/TipoEquipo.jsx'
 import ConsultarCliente from './Pages/Admin/Clientes/ConsultarCliente.jsx'
 import TipoUsuario from './Pages/Admin/Usuarios/tipoUsuario.jsx'
 import Usuarios from './Pages/Admin/Usuarios/Usuarios.jsx'
-
 
 
 export default function App() {
