@@ -137,7 +137,6 @@ const eliminarCliente = async (req, res) => {
 module.exports = {
   crearClientes,
   consultarClientes,
-  consultarUnCliente,
   actualizarCliente,
   eliminarCliente,
 };

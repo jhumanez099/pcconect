@@ -17,8 +17,6 @@ router.post("/clientes", crearClientes);
 // Consultar todos los clientes
 router.get("/clientes", consultarClientes);
 
-// Consultar un cliente específico por ID
-router.get("/clientes/:nombreCliente", consultarUnCliente);
 
 // Actualizar un cliente específico por ID
 router.put("/clientes/:id", actualizarCliente);

@@ -137,7 +137,6 @@ const eliminarTipoEquipo = async (req, res) => {
 module.exports = {
   crearTipoEquipo,
   consultarTipoEquipo,
-  consultarUnTipoEquipo,
   actualizarTipoEquipo,
   eliminarTipoEquipo,
 };

@@ -17,9 +17,6 @@ router.post("/tiposEquipos", crearTipoEquipo);
 // Consultar todos los tipos de equipos
 router.get("/tiposEquipos", consultarTipoEquipo);
 
-// Consultar un tipo de equipo específico por ID
-router.get("/tiposEquipos/:nombreTipoEquipo", consultarUnTipoEquipo);
-
 // Actualizar un tipo de equipo específico por ID
 router.put("/tiposEquipos/:id", actualizarTipoEquipo);
 
