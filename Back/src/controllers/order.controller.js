@@ -57,26 +57,6 @@ const consultarPedidos = async (req, res) => {
   }
 };
 
-const consultarUnPedido = async (req, res) => {
-  const { idPedido } = req.params;
-
-  if (!idPedido) {
-    return res.status(400).json({ message: "El ID del pedido es requerido." });
-  }
-
-  try {
-    const pedido = await Pedido.obtenerPorId(idPedido);
-
-    if (pedido.length === 0) {
-      return res.status(404).json({ message: ERROR_MESSAGES.ORDER_NOT_FOUND });
-    }
-
-    res.status(200).json(pedido[0]);
-  } catch (error) {
-    handleError(res, 500, ERROR_MESSAGES.RETRIEVAL_ERROR, error);
-  }
-};
-
 const actualizarPedido = async (req, res) => {
   const idPedido = req.params.id;
   const fields = {
@@ -91,15 +71,42 @@ const actualizarPedido = async (req, res) => {
     motivoPedido: req.body.motivoPedido,
   };
 
-  if (!validateFields(fields)) {
-    return res.status(400).json({ message: ERROR_MESSAGES.REQUIRED_FIELDS });
-  }
-
   try {
-    const pedidoActualizado = await Pedido.actualizar(idPedido, fields);
+    // Obtener el pedido actual desde la base de datos
+    const pedidoExistente = await Pedido.obtenerPorId(idPedido);
+
+    // Si no existe el pedido, retornar error
+    if (!pedidoExistente || pedidoExistente.length === 0) {
+      return res
+        .status(404)
+        .json({ message: ERROR_MESSAGES.ORDER_NOT_FOUND });
+    }
+
+    // Filtrar solo los campos modificados
+    const camposModificados = {};
+    Object.keys(fields).forEach((key) => {
+      if (fields[key] !== pedidoExistente[0][key]) {
+        camposModificados[key] = fields[key];
+      }
+    });
+
+    // Si no hay campos modificados, retornar mensaje de sin cambios
+    if (Object.keys(camposModificados).length === 0) {
+      return res
+        .status(200)
+        .json({ message: "No se realizaron cambios en el pedido." });
+    }
+
+    // Actualizar solo los campos modificados
+    const pedidoActualizado = await Pedido.actualizar(
+      idPedido,
+      camposModificados
+    );
 
     if (pedidoActualizado.affectedRows === 0) {
-      return res.status(404).json({ message: ERROR_MESSAGES.ORDER_NOT_FOUND });
+      return res
+        .status(404)
+        .json({ message: ERROR_MESSAGES.ORDER_NOT_FOUND });
     }
 
     res.status(200).json({ message: "Pedido actualizado con éxito." });
@@ -131,7 +138,6 @@ const eliminarPedido = async (req, res) => {
 module.exports = {
   crearPedidos,
   consultarPedidos,
-  consultarUnPedido,
   actualizarPedido,
   eliminarPedido,
 };

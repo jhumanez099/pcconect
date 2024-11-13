@@ -26,10 +26,11 @@ const DetallePedido = {
   // Obtener un detalle del pedido por ID
   async obtenerPorId(id) {
     const query = `
-      SELECT d.*, e.modelo_equipo, e.marca_equipo, te.nombre_tipo_equipo 
+      SELECT d.*, e.*, te.*, p.*
       FROM detalle_pedido d 
       JOIN equipos e ON d.id_equipo = e.id_equipo
       JOIN tipo_equipo te ON e.id_tipo_equipo = te.id_tipo_equipo
+      JOIN pedidos p ON e.id_pedido = d.id_pedido
       WHERE d.id_detalle_pedido = ?
       LIMIT 1
     `;

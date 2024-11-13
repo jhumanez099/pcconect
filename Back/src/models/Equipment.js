@@ -27,8 +27,8 @@ const Equipo = {
     return equipos;
   },
 
-  // Consultar un equipo por modelo
-  async obtenerPorModelo(modelo) {
+  // Consultar un equipo por ID
+  async obtenerPorId(id) {
     const query = `
       SELECT 
         e.*, te.*
@@ -37,11 +37,11 @@ const Equipo = {
       JOIN 
         tipo_equipo te ON te.id_tipo_equipo = e.id_tipo_equipo 
       WHERE 
-        e.modelo_equipo = ?
+        e.id_equipo = ?
       LIMIT   
         1
     `;
-    const [equipo] = await pool.query(query, [modelo]);
+    const [equipo] = await pool.query(query, [id]);
     return equipo;
   },
 
