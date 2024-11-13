@@ -32,7 +32,7 @@ export default function CrearEquipo() {
         Swal.fire({
           icon: "success",
           title: "Éxito",
-          text: "Cliente creado correctamente",
+          text: "Equipo creado correctamente",
         });
         console.log(response);
       })
@@ -40,7 +40,7 @@ export default function CrearEquipo() {
         Swal.fire({
           icon: "error",
           title: "Error",
-          text: "Hubo un error en la creación del cliente.",
+          text: "Hubo un error en la creación del equipo.",
         });
         console.log(error);
       });

@@ -3,10 +3,9 @@ const pool = require("../config/db.js");
 const Cliente = {
   // Crear un cliente
   async crear(fields) {
-    const query = 
-    `
+    const query = `
       INSERT INTO 
-        clientes(nombre_cliente, direccion_cliente, telefono_cliente, correo_cliente, estado_cliente, encargado_cliente)
+        clientes(nombre_cliente, direccion_cliente, telefono_cliente, correo_cliente, encargado_cliente, estado_cliente)
       VALUES 
         (?, ?, ?, ?, ?, ?)
     `;
