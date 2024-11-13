@@ -60,11 +60,11 @@ const Equipo = {
       WHERE 
         id_equipo = ?
     `;
-  
+
     // Verifica los valores finales que se usarán en la consulta SQL
-    console.log('Query a ejecutar:', query);
-    console.log('Valores para la query:', [...Object.values(fields), id]);
-  
+    console.log("Query a ejecutar:", query);
+    console.log("Valores para la query:", [...Object.values(fields), id]);
+
     const [result] = await pool.query(query, [...Object.values(fields), id]);
     return result;
   },

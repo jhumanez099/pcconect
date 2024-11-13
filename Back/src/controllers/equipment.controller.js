@@ -67,7 +67,7 @@ const consultarEquipo = async (req, res) => {
 const actualizarEquipo = async (req, res) => {
   const idEquipo = req.params.id;
 
-  console.log('ID RECIBIDO: ', idEquipo)
+  console.log("ID RECIBIDO: ", idEquipo);
 
   const {
     nombreTipoEquipo,
@@ -131,7 +131,7 @@ const actualizarEquipo = async (req, res) => {
 
 const eliminarEquipo = async (req, res) => {
   const idEquipo = req.params.id;
-  console.log(idEquipo)
+  console.log(idEquipo);
   if (!idEquipo) {
     return res.status(400).json({ message: "El ID del equipo es requerido." });
   }
