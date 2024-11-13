@@ -4,6 +4,7 @@ import NavBar from "../../../components/NavBar";
 import Modal from "react-modal";
 import PropTypes from "prop-types";
 import { useEffect, useState, useMemo } from "react";
+import './Cliente.css'
 
 function ClienteRow({ cliente, onEliminar, onEditar }) {
   return (
@@ -366,10 +367,10 @@ export default function ConsultarCliente() {
           <div className="modal-footer d-flex justify-content-center">
             <button
               type="button"
-              className="btn btn-success "
+              className="btn btn-success w-50"
               onClick={editarCliente}
             >
-              Guardar Cambios
+              <i className="bi bi-save"></i> Guardar Cambios
             </button>
           </div>
         </div>
